@@ -1,10 +1,10 @@
 # 合璧操作系统设备端数据总线概要设计
 
 【主题】合璧操作系统设备端数据总线概要设计  
-【概要】本文阐述合璧操作系统设备端数据总线（hiBus）设计  
-【版本】1.0  
+【概要】本文阐述合璧操作系统设备端数据总线（HBDBus）设计  
+【版本】2.0  
 【作者】魏永明  
-【日期】2021 年 01 月  
+【日期】2023 年 05 月  
 【状态】定稿  
 【版本】0.9  
 【作者】魏永明  
@@ -13,7 +13,7 @@
 
 **版权声明**
 
-版权所有 &copy; 2020 北京飞漫软件技术有限公司  
+版权所有 &copy; 2020 ~ 2023 北京飞漫软件技术有限公司  
 保留所有权利
 
 此文档不受合璧操作系统相关软件开源许可证的管辖。
@@ -36,7 +36,7 @@
       * [产生事件](#产生事件)
       * [收到事件](#收到事件)
       * [乒乓心跳](#乒乓心跳)
-   + [hiBus 内置过程](#hibus-内置过程)
+   + [HBDBus 内置过程](#hbdbus-内置过程)
       * [注册过程](#注册过程)
       * [撤销过程](#撤销过程)
       * [注册事件](#注册事件)
@@ -48,7 +48,7 @@
       * [列出已注册事件](#列出已注册事件)
       * [列出事件的订阅者](#列出事件的订阅者)
       * [回声](#回声)
-   + [hiBus 内置事件](#hibus-内置事件)
+   + [HBDBus 内置事件](#hbdbus-内置事件)
       * [新行者事件](#新行者事件)
       * [行者断开事件](#行者断开事件)
       * [丢失事件发生器事件](#丢失事件发生器事件)
@@ -85,7 +85,7 @@
  ---------------------------------------------------------------------------------     |
 |                   hiWebKit                  |                                   |    |
  ---------------------------------------------                                    |    |
-|  MiniGUI, hiCairo, hiMesa, SQLite, FreeType, HarfBuzz, LibPNG, LibJPEG, ...     |    | hiBus
+|  MiniGUI, hiCairo, hiMesa, SQLite, FreeType, HarfBuzz, LibPNG, LibJPEG, ...     |    | HBDBus
 |                                                                                 |    |
  ---------------------------------------------------------------------------------     |
 |                           HybridOS servers and user daemons                     |____|
@@ -98,13 +98,13 @@
  ---------------------------------------------------------------------------------
 ```
 
-在 HybridOS 中，始终贯彻着一个重要的设计思想：数据驱动。而不论是单一应用场景还是多应用场景，hiBus 将成为 HybridOS 连接 App 和底层功能模块的纽带；甚至在将来，成为连接局域网内不同设备节点的纽带。
+在 HybridOS 中，始终贯彻着一个重要的设计思想：数据驱动。而不论是单一应用场景还是多应用场景，HBDBus 将成为 HybridOS 连接 App 和底层功能模块的纽带；甚至在将来，成为连接局域网内不同设备节点的纽带。
 
-hiBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传递数据。但相比 uBus，hiBus 具有如下重要的改进：
+HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传递数据。但相比 uBus，HBDBus 具有如下重要的改进：
 
-1. 提供两种类型的底层连接通道：本地的 Unix Domain Socket（简称 UnixSocket）和 WebSocket，以方便使用不同编程语言开发的模块都可以方便地连接到 hiBus 上。
+1. 提供两种类型的底层连接通道：本地的 Unix Domain Socket（简称 UnixSocket）和 WebSocket，以方便使用不同编程语言开发的模块都可以方便地连接到 HBDBus 上。
 1. 提供基本的安全机制，以决定某个应用或者某个远程节点能否订阅（subscribe）特定的事件，以及能否调用（call）某个特定的过程（procedure）。
-1. 考虑到在未来，hiBus 可通过 WebSocket 向局域网中的其他 IoT 设备节点提供服务。因此，需要在事件订阅以及调用远程过程时包含主机名称信息。
+1. 考虑到在未来，HBDBus 可通过 WebSocket 向局域网中的其他 IoT 设备节点提供服务。因此，需要在事件订阅以及调用远程过程时包含主机名称信息。
 1. 重新设计的通讯协议，可避免出现同一应用扮演不同角色时出现死锁情形。
 
 术语：
@@ -115,14 +115,14 @@ hiBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传递
 1. 事件（event）/泡泡（bubble）：事件名称中包含了主机名称、应用名称、行者名称以及泡泡名称。
 1. 过程（procedure）/方法（method）：过程名称中包含了主机名称、应用名称、行者名称以及方法名称。
 
-在 hiBus 中，一个应用的不同行者都可以作为客户端连接到 hiBus 服务器上；单个应用的不同连接对应一个唯一的行者名称，每个行者都可以扮演如下单个角色或多个角色：
+在 HBDBus 中，一个应用的不同行者都可以作为客户端连接到 HBDBus 服务器上；单个应用的不同连接对应一个唯一的行者名称，每个行者都可以扮演如下单个角色或多个角色：
 
 1. 事件发生器（event generator）：注册事件后，发生新的事件后向服务器写入事件数据。
 1. 过程处理器（procedure handler）：注册过程后，等待调用请求、处理，然后发送处理结果。
 1. 事件订阅者（event subscriber）：向服务器订阅指定的事件后，将收到对应的事件。
 1. 过程调用者（procedure caller）：向服务器发送过程调用请求，之后同步等待或者异步等待处理结果。
 
-下图描述了某个应用的两个行者。一个是控制行者，该行者和底层硬件交互，用于完成指定的控制指令，并根据设备的工作状态产生适当的事件；另外一个是交互行者，用于向用户展示底层设备的工作状态，并发送操控指令给控制行者。这两个行者均连接到 hiBus 服务器。
+下图描述了某个应用的两个行者。一个是控制行者，该行者和底层硬件交互，用于完成指定的控制指令，并根据设备的工作状态产生适当的事件；另外一个是交互行者，用于向用户展示底层设备的工作状态，并发送操控指令给控制行者。这两个行者均连接到 HBDBus 服务器。
 
 ```
              -------------------------------
@@ -135,7 +135,7 @@ hiBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传递
                             | WebSocket connection
                             |
                      --------------
-                    | hiBus Server |
+                    | HBDBus Server |
                      --------------
                             |
                             | UnixSocket connection
@@ -150,12 +150,12 @@ hiBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传递
 
 我们使用如下的端点（endpoint）名称来指定一个行者（含有主机名、应用名及行者名）：
 
-- 行者：`@<host_name>/<app_name>/<runner_name>`
+- 行者：`edpt://<host_name>/<app_name>/<runner_name>`
 
 使用如下的字符串指代一个过程或事件：
 
-- 过程：`@<host_name>/<app_name>/<runner_name>/<method_name>`
-- 事件：`@<host_name>/<app_name>/<runner_name>/<bubble_name>`
+- 过程：`edpt://<host_name>/<app_name>/<runner_name>/<method_name>`
+- 事件：`edpt://<host_name>/<app_name>/<runner_name>/<bubble_name>`
 
 其中，
 
@@ -166,21 +166,21 @@ hiBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传递
 我们保留如下特别的主机名称和应用名称：
 
 - `localhost`：指本机。
-- `cn.fmsoft.hybridos.ibus`：保留的应用名称，指 hiBus 本身，注册或注销事件或过程时，向该应用发送指定的过程调用。该应用也可提供一些一般性的系统操作命令以及事件。
+- `cn.fmsoft.hybridos.ibus`：保留的应用名称，指 HBDBus 本身，注册或注销事件或过程时，向该应用发送指定的过程调用。该应用也可提供一些一般性的系统操作命令以及事件。
 
 ## 协议及接口
 
-本协议的设计考虑到了跨设备，多行者的情形，但当前的 hiBus 服务器版本仅处理本机情形。
+本协议的设计考虑到了跨设备，多行者的情形，但当前的 HBDBus 服务器版本仅处理本机情形。
 
 ### 套接字接口
 
 1. UnixSocket 端口：
-   - `/var/run/hibus.sock`：通讯端口，用于过程调用、发送和接收事件。
+   - `/var/run/hbdbus.sock`：通讯端口，用于过程调用、发送和接收事件。
 1. WebSocket 端口（HybridOS 保留 7000 ~ 7999 端口）：
    - `7700`：通讯端口，用于过程调用、发送和接收事件。
    - `7701`：保留；或可用于中继功能。
 
-理论上，当 hiBus 服务器运行在 WebSocket 端口且绑定到非本机回环（loopback）地址上时，有能力为其他设备节点提供事件及过程调用服务。
+理论上，当 HBDBus 服务器运行在 WebSocket 端口且绑定到非本机回环（loopback）地址上时，有能力为其他设备节点提供事件及过程调用服务。
 
 ### 协议
 
@@ -297,13 +297,13 @@ hiBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传递
 
 #### 过程调用请求
 
-发起执行特定过程（procedure）的请求时，向 hiBus 服务器写入如下 JSON 数据：
+发起执行特定过程（procedure）的请求时，向 HBDBus 服务器写入如下 JSON 数据：
 
 ```json
 {
     "packetType": "call",
     "callId": "<unique_call_identifier>",
-    "toEndpoint": "@<host_name>/<app_name>/<runner_name>",
+    "toEndpoint": "edpt://<host_name>/<app_name>/<runner_name>",
     "toMethod": "<method_name>",
     "expectedTime": 30000,
     "authenInfo": {
@@ -357,14 +357,14 @@ hiBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传递
 
 #### 过程调用结果
 
-hiBus 服务器会首先将过程调用请求转发给过程端点，根据过程处理器的处理结果返回结果标识符、请求标识符、状态码以及可能的结果给调用者。相应的数据包格式如下：
+HBDBus 服务器会首先将过程调用请求转发给过程端点，根据过程处理器的处理结果返回结果标识符、请求标识符、状态码以及可能的结果给调用者。相应的数据包格式如下：
 
 ```json
 {
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "@<host_name>/<app_name>/<runner_name>",
+    "fromEndpoint": "edpt://<host_name>/<app_name>/<runner_name>",
     "fromMethod": "<method_name>"
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -376,7 +376,7 @@ hiBus 服务器会首先将过程调用请求转发给过程端点，根据过�
 
 其中，
 - `packetType` 表示数据包类型，这里用 `result`，表示过程调用结果。
-- `resultId` 是 hiBus 服务器为每个过程调用分配的一个全局唯一字符串，用于跟踪特定的调用。
+- `resultId` 是 HBDBus 服务器为每个过程调用分配的一个全局唯一字符串，用于跟踪特定的调用。
 - `callId` 是调用方发起过程调用时提供的标识符。
 - `fromEndpoint` 表示处理该调用端点名称，包括主机名称、应用名称及行者名称。仅在 `retCode` 为 200 时存在该字段。
 - `fromMethod` 表示处理该调用的方法名称。仅在 `retCode` 为 200 时存在该字段。
@@ -423,7 +423,7 @@ hiBus 服务器会首先将过程调用请求转发给过程端点，根据过�
 
 #### 转发过程调用请求给过程端点
 
-hiBus 服务器收到执行特定过程的请求后，首先做如下检查：
+HBDBus 服务器收到执行特定过程的请求后，首先做如下检查：
 
 - 解析调用请求；存在无效数据时，比如无效的过程名称，未提供参数，或者参数不符合要求等，返回 400、405 或者 406 状态码。
 - 指定的过程是否存在；若不存在，立即返回 404。
@@ -438,7 +438,7 @@ hiBus 服务器收到执行特定过程的请求后，首先做如下检查：
     "packetType": "call",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "@<host_name>/<app_name>/<runner_name>",
+    "fromEndpoint": "edpt://<host_name>/<app_name>/<runner_name>",
     "toMethod": "<method_name>",
     "timeDiff": 0.5432,
     "authenInfo": {
@@ -530,7 +530,7 @@ hiBus 服务器收到执行特定过程的请求后，首先做如下检查：
     "packetType": "event",
     "eventId": "<unique_event_identifier>",
     "timeDiff": 0.1234,
-    "fromEndpoint": "@<host_name>/<app_name>/<runner_name>",
+    "fromEndpoint": "edpt://<host_name>/<app_name>/<runner_name>",
     "fromBubble": "<bubble_name>",
     "bubbleData": {
         ...
@@ -550,13 +550,13 @@ hiBus 服务器收到执行特定过程的请求后，首先做如下检查：
 
 一般而言，在套接字连接上使用乒乓心跳可以有效检测连接的意外丢失。WebSocket 规范规定了心跳的处理机制，和 WebSocket 类似，在 UnixSocket 的连接中，服务器和客户端之间，也将通过类似 WebSocket 的机制来处理乒乓心跳。这种处理由底层的通讯协议进行，上层无须关系。
 
-### hiBus 内置过程
+### HBDBus 内置过程
 
-hiBus 服务器通过内置过程实现注册过程/事件等功能。
+HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 注册过程
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/registerProcedure`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/registerProcedure`
 - 参数：
    + `methodName`：待注册过程的方法名称；由于主机名和应用名是隐含的，所以无需指定。
    + `forHost`：可以调用该方法的主机名称，可指定多个主机（逗号分隔），亦可使用通配符。
@@ -571,7 +571,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 {
     "packetType": "call",
     "callId": "<unique_call_identifier>",
-    "toEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "toEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "toMethod": "registerProcedure",
     "expectedTime": 30000,
     "authenInfo": null,
@@ -586,7 +586,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromMethod": "registerProcedure",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -598,7 +598,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 撤销过程
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/revokeProcedure`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/revokeProcedure`
 - 参数：
    + `methodName`：待撤销过程的方法名称；由于主机名和应用名是隐含的，所以无需指定。
 - 返回值：无。客户端依据结果的 `retCode` 判断是否撤销成功，可能的值有：
@@ -609,7 +609,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 注册事件
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/registerEvent`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/registerEvent`
 - 参数：
    + `bubbleName`：待注册的事件名称；由于主机名和应用名是隐含的，所以无需指定。
    + `forHost`：可以订阅该事件的主机名称，可指定多个主机（逗号分隔），亦可使用通配符。
@@ -620,7 +620,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 撤销事件
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/revokeEvent`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/revokeEvent`
 - 参数：
    + `bubbleName`：待撤销过程的事件名称；由于主机名和应用名是隐含的，所以无需指定。
 - 返回值：无。客户端依据结果的 `retCode` 判断是否撤销成功，可能的值有：
@@ -630,7 +630,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 订阅事件
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/subscribeEvent`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/subscribeEvent`
 - 参数：
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
@@ -641,7 +641,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 取消事件订阅
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/unsubscribeEvent`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/unsubscribeEvent`
 - 参数：
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
@@ -651,11 +651,11 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 列出已连接端点
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/listEndpoints`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listEndpoints`
 - 参数：无。
 - 返回值：成功时返回已注册的，且调用方可调用的过程清单。
 - 常见错误状态码：403（Forbidden）。
-- 仅允许 `cn.fmsoft.hybridos.hibus` 应用调用。
+- 仅允许 `cn.fmsoft.hybridos.hbdbus` 应用调用。
 
 下面是一个示例结果：
 
@@ -664,7 +664,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromMethod": "listEndpoints",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -672,7 +672,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
     "retMsg": "Ok",
     "retValue": [
         {
-            "endpointName": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
             "livingSeconds": 50,
             "methods": ["foo", "bar"],
             "bubbles": ["FOO", "BAR"],
@@ -680,7 +680,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
             "peakMemUsed": 4526
         },
         {
-            "endpointName": "@localhost/cn.fmsoft.hybridos.hibus/cmdline",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/cmdline",
             "livingSeconds": 20,
             "methods": ["foo", "bar"],
             "bubbles": ["FOO", "BAR"],
@@ -695,7 +695,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 列出已注册过程
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/listProcedures`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listProcedures`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
 - 返回值：成功时返回已注册的，且调用方可调用的过程清单。
 - 常见错误状态码：
@@ -708,7 +708,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromMethod": "listProcedures",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -716,11 +716,11 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
     "retMsg": "Ok",
     "retValue": [
         {
-            "endpointName": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
             "methods": ["foo", "bar"]
         },
         {
-            "endpointName": "@localhost/cn.fmsoft.hybridos.daemons/inetd",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.daemons/inetd",
             "methods": ["getHotSpots", "connectToHotSpot"]
         }
     ],
@@ -731,7 +731,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 列出已注册事件
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/listEvents`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listEvents`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
 - 返回值：成功时返回已注册的，且调用方可订阅的事件清单。
 - 常见错误状态码：
@@ -744,7 +744,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromMethod": "listEvents",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -752,11 +752,11 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
     "retMsg": "Ok",
     "retValue": [
         {
-            "endpointName": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
             "bubbles": ["FOO", "BAR"]
         },
         {
-            "endpointName": "@localhost/cn.fmsoft.hybridos.daemons/inetd",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.daemons/inetd",
             "bubbles": ["FOO", "BAR"]
         }
     ],
@@ -767,7 +767,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 列出事件的订阅者
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/listEventSubscribers`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listEventSubscribers`
 - 参数：
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
@@ -784,15 +784,15 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromMethod": "listEventSubscribers",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
     "retCode": 200,
     "retMsg": "Ok",
     "retValue": [
-        "@localhost/cn.fmsoft.hybridos.foo/first",
-        "@localhost/cn.fmsoft.hybridos.bar/second",
+        "edpt://localhost/cn.fmsoft.hybridos.foo/first",
+        "edpt://localhost/cn.fmsoft.hybridos.bar/second",
     ],
 }
 ```
@@ -803,7 +803,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 
 该过程主要用于测试。
 
-- 过程名称：`@localhost/cn.fmsoft.hybridos.hibus/builtin/echo`
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/echo`
 - 参数：
    + `words`：一个非空字符串。
 - 返回值：成功时返回传入的非空字符串。
@@ -817,7 +817,7 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromMethod": "echo",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -827,19 +827,19 @@ hiBus 服务器通过内置过程实现注册过程/事件等功能。
 }
 ```
 
-### hiBus 内置事件
+### HBDBus 内置事件
 
-hiBus 服务器通过 `builtin` 行者产生内置事件。
+HBDBus 服务器通过 `builtin` 行者产生内置事件。
 
 #### 新行者事件
 
-当一个新的行者成功连入 hibus 服务器时，产生 `NEWENDPOINT` 事件：
+当一个新的行者成功连入 hbdbus 服务器时，产生 `NEWENDPOINT` 事件：
 
 ```json
 {
     "packetType": "event",
     "eventId": "<unique_event_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromBubble": "NEWENDPOINT",
     "bubbleData": {
         "endpointType": [ "web" | "unix" ],
@@ -868,7 +868,7 @@ hiBus 服务器通过 `builtin` 行者产生内置事件。
 {
     "packetType": "event",
     "eventId": "<unique_event_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromBubble": "BROKENENDPOINT",
     "bubbleData": {
         "endpointType": [ "web" | "unix" ],
@@ -897,7 +897,7 @@ hiBus 服务器通过 `builtin` 行者产生内置事件。
 {
     "packetType": "event",
     "eventId": "<unique_event_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromBubble": "LOSTEVENTGENERATOR",
     "bubbleData": {
         "endpointName": "<the_endpoint_name>",
@@ -918,7 +918,7 @@ hiBus 服务器通过 `builtin` 行者产生内置事件。
 {
     "packetType": "event",
     "eventId": "<unique_event_identifier>",
-    "fromEndpoint": "@localhost/cn.fmsoft.hybridos.hibus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromBubble": "LOSTEVNTBUBBLE",
     "bubbleData": {
         "endpointName": "<the_endpoint_name>",
@@ -935,7 +935,7 @@ hiBus 服务器通过 `builtin` 行者产生内置事件。
 
 ## 架构及关键模块
 
-hiBus 服务器使用 C/C++ 语言开发，由服务器程序、命令行程序和供客户端使用的函数库（以及头文件）三部分组成。
+HBDBus 服务器使用 C/C++ 语言开发，由服务器程序、命令行程序和供客户端使用的函数库（以及头文件）三部分组成。
 
 ### 架构及服务器模块构成
 
@@ -963,7 +963,7 @@ hiBus 服务器使用 C/C++ 语言开发，由服务器程序、命令行程序�
 |      Registered Event Manager    |   Registered Procedure Manager  |
 |                           Event Subscriber Manager                 |
  --------------------------------------------------------------------
-|           Event Dispatcher       |        Call Dispatcher          |     hiBus Server
+|           Event Dispatcher       |        Call Dispatcher          |     HBDBus Server
  --------------------------------------------------------------------
 |                           The Builtin Endpoint                     |
  --------------------------------------------------------------------
@@ -979,7 +979,7 @@ hiBus 服务器使用 C/C++ 语言开发，由服务器程序、命令行程序�
          -----------------------------------------------------------
          |                              |                           |
     --------------------       --------------------                ...
-   | hiBus Command Line |     |      App 5         |
+   | HBDBus Command Line |     |      App 5         |
    |--------------------      |--------------------
    | Event handlers     |     |      Runner 1      |
    | Result handlers    |     |      Runner 2      |
@@ -987,11 +987,11 @@ hiBus 服务器使用 C/C++ 语言开发，由服务器程序、命令行程序�
     --------------------       --------------------
 ```
 
-如上图所示，App 通过 WebSocket 或者 UnixSocket 连接到 hiBus 服务器，每个应用可包含若干行者，可用于过程处理，产生事件，或者处理事件，发起过程调用。
+如上图所示，App 通过 WebSocket 或者 UnixSocket 连接到 HBDBus 服务器，每个应用可包含若干行者，可用于过程处理，产生事件，或者处理事件，发起过程调用。
 
-其中，hiBus 命令行（command line）作为 `cn.fmsoft.hybridos.hibus` 应用的外挂行者实现，可用于系统管理员查看或者开发者调试使用。
+其中，HBDBus 命令行（command line）作为 `cn.fmsoft.hybridos.hbdbus` 应用的外挂行者实现，可用于系统管理员查看或者开发者调试使用。
 
-hiBus 服务器主要包含如下软件模块：
+HBDBus 服务器主要包含如下软件模块：
 
 - WebSocket/UnixSocket 连接管理器：该模块用于监听套接字端口，接受连接请求，检测连接是否已断开等。
 - 连接/端点管理器（Connection/Endpoint Manager）：该模块验证应用身份，记录连接和端点的映射关系。
@@ -1000,65 +1000,65 @@ hiBus 服务器主要包含如下软件模块：
 - 事件订阅者管理器（Event Subscriber Manager）：该模块管理所有的事件订阅者清单信息，处理事件的订阅及取消订阅请求。
 - 事件分发器（Event Dispatcher）：该模块将端点产生的事件分发给订阅者。
 - 调用分发器（Call Dispatcher）：该模块将端点发起的过程调用分发给对应的端点进行处理。
-- 内置端点（The Builtin Endpoint）：该模块实现 hiBus 的内置过程。
+- 内置端点（The Builtin Endpoint）：该模块实现 HBDBus 的内置过程。
 - 辅助模块（Helpers）：辅助模块中主要包括 JSON 的处理模块以及安全性处理模块。前者主要用于解析 JSON 格式的数据包并将其转换成内部结构，或者反之。后者主要提供基于非对称个加密算法的签名验证功能以及通配符处理功能等。
 
 ### 命令行
 
-hiBus 的命令行工具，将被编译为独立的程序，该程序以端点名 `@localhost/cn.fmsoft.hybridos.hibus/cmdline` 连接到服务器，视为 hiBus 本身的 `cmdline` 行者，以独立进程方式运行。
+HBDBus 的命令行工具，将被编译为独立的程序，该程序以端点名 `edpt://localhost/cn.fmsoft.hybridos.hbdbus/cmdline` 连接到服务器，视为 HBDBus 本身的 `cmdline` 行者，以独立进程方式运行。
 
-使用该命令行工具时，可通过 hiBus 内置过程来查询已注册过程、事件、特定事件的订阅者信息，亦可订阅特定事件，或者调用某个特定的过程。
+使用该命令行工具时，可通过 HBDBus 内置过程来查询已注册过程、事件、特定事件的订阅者信息，亦可订阅特定事件，或者调用某个特定的过程。
 
 ### 客户端接口
 
-客户端接口编译为独立函数库（libhibus.so），提供 C 语言接口，以方便使用不同编程语言开发的客户端使用这些接口注册/撤销过程、注册/撤销/订阅事件等。
+客户端接口编译为独立函数库（libhbdbus.so），提供 C 语言接口，以方便使用不同编程语言开发的客户端使用这些接口注册/撤销过程、注册/撤销/订阅事件等。
 
 所有的客户端接口均是线程安全的，这样，我们可以用某个线程来实现某个行者。比如，我们可以在主线程中以 `event` 行者名连接到服务器，在主线程中只处理事件，而所有调用远程过程的功能则在另一个线程中实现，其行者名为 `call`。如此设计，可帮助构造符合数据驱动需求的良好应用架构。
 
 #### 全局类型
 
 ```c
-struct _hibus_conn;
-typedef struct _hibus_conn hibus_conn;
+struct _hbdbus_conn;
+typedef struct _hbdbus_conn hbdbus_conn;
 
-struct _hibus_json;
-typedef struct json_object hibus_json;
+struct _hbdbus_json;
+typedef struct json_object hbdbus_json;
 ```
 
-`hibus_conn` 是一个用来表示 hiBus 连接的匿名数据结构。
+`hbdbus_conn` 是一个用来表示 HBDBus 连接的匿名数据结构。
 
-`hibus_json` 是一个用来表示 JSON 对象的数据结构。
+`hbdbus_json` 是一个用来表示 JSON 对象的数据结构。
 
 #### 连接管理
 
-使用如下接口之一连接到 hiBus 服务器：
+使用如下接口之一连接到 HBDBus 服务器：
 
 ```c
-int hibus_connect_via_unix_socket (const char* path_to_socket,
-        const char* app_name, const char* runner_name, hibus_conn** conn);
-int hibus_connect_via_web_socket (const char* host_name, int port,
-        const char* app_name, const char* runner_name, hibus_conn** conn);
+int hbdbus_connect_via_unix_socket (const char* path_to_socket,
+        const char* app_name, const char* runner_name, hbdbus_conn** conn);
+int hbdbus_connect_via_web_socket (const char* host_name, int port,
+        const char* app_name, const char* runner_name, hbdbus_conn** conn);
 ```
 
-上面的两个函数，分别使用 UnixSocket 或者 WebSocket 连接到 hiBus 服务器上。函数的返回值为套接字文件描述符（fd）。`fd >= 0` 时表明连接成功，此时会通过 `conn` 参数返回一个匿名的 `hibus_conn` 结构指针。`fd < 0` 时表明连接失败，其绝对值标识错误编码。
+上面的两个函数，分别使用 UnixSocket 或者 WebSocket 连接到 HBDBus 服务器上。函数的返回值为套接字文件描述符（fd）。`fd >= 0` 时表明连接成功，此时会通过 `conn` 参数返回一个匿名的 `hbdbus_conn` 结构指针。`fd < 0` 时表明连接失败，其绝对值标识错误编码。
 
 若连接成功，其后所有的接口均使用通过 `conn` 返回的结构指针来标识该连接。
 
-使用如下接口关闭到 hiBus 服务器的连接：
+使用如下接口关闭到 HBDBus 服务器的连接：
 
 ```c
-int hibus_disconnect (hibus_conn* conn);
+int hbdbus_disconnect (hbdbus_conn* conn);
 ```
 
-使用如下接口从 `hibus_conn` 结构中获得相关信息（主机名、应用名、行者名、套接字文件描述符、套接字类型等）：
+使用如下接口从 `hbdbus_conn` 结构中获得相关信息（主机名、应用名、行者名、套接字文件描述符、套接字类型等）：
 
 ```c
-const char* hibus_conn_srv_host_name (hibus_conn* conn);
-const char* hibus_conn_own_host_name (hibus_conn* conn);
-const char* hibus_conn_app_name (hibus_conn* conn);
-const char* hibus_conn_runner_name (hibus_conn* conn);
-int hibus_conn_socket_fd (hibus_conn* conn);
-int hibus_conn_socket_type (hibus_conn* conn);
+const char* hbdbus_conn_srv_host_name (hbdbus_conn* conn);
+const char* hbdbus_conn_own_host_name (hbdbus_conn* conn);
+const char* hbdbus_conn_app_name (hbdbus_conn* conn);
+const char* hbdbus_conn_runner_name (hbdbus_conn* conn);
+int hbdbus_conn_socket_fd (hbdbus_conn* conn);
+int hbdbus_conn_socket_type (hbdbus_conn* conn);
 ```
 
 #### 数据包读写函数
@@ -1067,10 +1067,10 @@ int hibus_conn_socket_type (hibus_conn* conn);
 
 ```c
 #define MAX_LEN_PAYLOAD     4096
-int hibus_read_packet (hibus_conn* conn, void* packet_buf, unsigned int *packet_len);
-void* hibus_read_packet_alloc (hibus_conn* conn, unsigned int *packet_len);
+int hbdbus_read_packet (hbdbus_conn* conn, void* packet_buf, unsigned int *packet_len);
+void* hbdbus_read_packet_alloc (hbdbus_conn* conn, unsigned int *packet_len);
 
-int hibus_send_text_packet (hibus_conn* conn, const char* text, unsigned int txt_len);
+int hbdbus_send_text_packet (hbdbus_conn* conn, const char* text, unsigned int txt_len);
 ```
 
 和 WebSocket 类似，在数据包长度超过 4096 字节时，通过 UnixSocket 发出的数据包也会被分成较小的数据帧（frame）来传输。每个数据帧的负载（payload）大小被限定为 4096 字节，这些函数将自动处理数据包的分片发送或者读取。也会自动处理乒乓心跳数据帧。
@@ -1088,22 +1088,22 @@ int hibus_send_text_packet (hibus_conn* conn, const char* text, unsigned int txt
 #define LEN_METHOD_NAME     64
 #define LEN_BUBBLE_NAME     64
 
-int hibus_get_host_name (const char* endpoint, char* buff);
-int hibus_get_app_name (const char* endpoint, char* buff);
-int hibus_get_runner_name (const char* endpoint, char* buff);
+int hbdbus_get_host_name (const char* endpoint, char* buff);
+int hbdbus_get_app_name (const char* endpoint, char* buff);
+int hbdbus_get_runner_name (const char* endpoint, char* buff);
 
-char* hibus_get_host_name_alloc (const char* endpoint);
-char* hibus_get_app_name_alloc (const char* endpoint);
-char* hibus_get_runner_name_alloc (const char* endpoint);
+char* hbdbus_get_host_name_alloc (const char* endpoint);
+char* hbdbus_get_app_name_alloc (const char* endpoint);
+char* hbdbus_get_runner_name_alloc (const char* endpoint);
 ```
 
 行者可使用如下辅助函数来组装一个端点名称：
 
 ```c
-int hibus_assemble_endpoint (const char* host_name, const char* app_name,
+int hbdbus_assemble_endpoint (const char* host_name, const char* app_name,
         const char* runner_name, char* buff);
 
-char* hibus_assemble_endpoint_alloc (const char* host_name, const char* app_name,
+char* hbdbus_assemble_endpoint_alloc (const char* host_name, const char* app_name,
         const char* runner_name);
 ```
 
@@ -1112,84 +1112,84 @@ char* hibus_assemble_endpoint_alloc (const char* host_name, const char* app_name
 行者可以使用如下的接口注册或撤销过程：
 
 ```c
-typedef char* (*hibus_method_handler)(hibus_conn* conn,
+typedef char* (*hbdbus_method_handler)(hbdbus_conn* conn,
         const char* from_endpoint, const char* method_name,
         const char* method_param);
 
-int hibus_register_procedure (hibus_conn* conn, const char* method_name,
-        hibus_method_handler method_handler);
-int hibus_revoke_procedure (hibus_conn* conn, const char* method_name);
+int hbdbus_register_procedure (hbdbus_conn* conn, const char* method_name,
+        hbdbus_method_handler method_handler);
+int hbdbus_revoke_procedure (hbdbus_conn* conn, const char* method_name);
 ```
 
-`hibus_register_procedure` 函数用于注册一个过程。当该行者收到调用该过程的请求时，将自动调用对应的回调函数 `method_cb`，并传递方法名、调用者端点以及过程参数。
+`hbdbus_register_procedure` 函数用于注册一个过程。当该行者收到调用该过程的请求时，将自动调用对应的回调函数 `method_cb`，并传递方法名、调用者端点以及过程参数。
 
-`hibus_revoke_procedure` 函数用于撤销一个过程。
+`hbdbus_revoke_procedure` 函数用于撤销一个过程。
 
 #### 事件管理
 
 行者可以使用如下的接口注册或撤销事件：
 
 ```c
-int hibus_register_event (hibus_conn* conn, const char* bubble_name,
+int hbdbus_register_event (hbdbus_conn* conn, const char* bubble_name,
         const char* to_host, const char* to_app);
-int hibus_revoke_event (hibus_conn* conn, const char* bubble_name);
-int hibus_fire_event (hibus_conn* conn,
+int hbdbus_revoke_event (hbdbus_conn* conn, const char* bubble_name);
+int hbdbus_fire_event (hbdbus_conn* conn,
         const char* bubble_name, const char* bubble_data);
 ```
 
-`hibus_register_event` 函数用于注册一个事件。
+`hbdbus_register_event` 函数用于注册一个事件。
 
-`hibus_revoke_event` 函数用于撤销一个事件。
+`hbdbus_revoke_event` 函数用于撤销一个事件。
 
-`hibus_fire_event` 用于产生一个事件。
+`hbdbus_fire_event` 用于产生一个事件。
 
 #### 订阅事件
 
 模块可以使用如下的接口订阅或者取消订阅一个事件：
 
 ```c
-typedef void (*hibus_event_handler)(hibus_conn* conn,
+typedef void (*hbdbus_event_handler)(hbdbus_conn* conn,
         const char* from_endpoint, const char* bubble_name,
         const char* bubble_data);
 
-int hibus_subscribe_event (hibus_conn* conn,
+int hbdbus_subscribe_event (hbdbus_conn* conn,
         const char* endpoint, const char* bubble_name,
-        hibus_event_handler event_handler);
+        hbdbus_event_handler event_handler);
 
-int hibus_unsubscribe_event (hibus_conn* conn,
+int hbdbus_unsubscribe_event (hbdbus_conn* conn,
         const char* endpoint, const char* bubble_name);
 ```
 
-`hibus_subscribe_event` 函数用于订阅一个事件。当指定的事件来临时，`event_handler` 指定的事件回调函数将被调用。
+`hbdbus_subscribe_event` 函数用于订阅一个事件。当指定的事件来临时，`event_handler` 指定的事件回调函数将被调用。
 
-`hibus_unsubscribe_event` 函数用于取消对一个事件的订阅。
+`hbdbus_unsubscribe_event` 函数用于取消对一个事件的订阅。
 
-`hibus_wait_for_event` 函数用于等待事件。
+`hbdbus_wait_for_event` 函数用于等待事件。
 
 #### 调用过程
 
 行者可使用如下接口调用过程：
 
 ```c
-typedef void (*hibus_result_handler)(hibus_conn* conn,
+typedef void (*hbdbus_result_handler)(hbdbus_conn* conn,
         const char* from_endpoint, const char* method_name,
         int ret_code, const char* ret_value);
 
-int hibus_call_procedure (hibus_conn* conn, const char* endpoint, const char* method_name,
-        const char* method_praram, time_t ret_time_expected, hibus_result_handler result_handler);
+int hbdbus_call_procedure (hbdbus_conn* conn, const char* endpoint, const char* method_name,
+        const char* method_praram, time_t ret_time_expected, hbdbus_result_handler result_handler);
 
-int hibus_call_procedure_and_wait (hibus_conn* conn, const char* endpoint, const char* method_name,
+int hbdbus_call_procedure_and_wait (hbdbus_conn* conn, const char* endpoint, const char* method_name,
         const char* method_praram, time_t ret_time_expected, char** ret_value);
 ```
 
-`hibus_call_procedure` 提供了异步调用远程过程的接口：发起调用后会立即返回，然后在回调函数（`result_handler`）中等待结果或错误。此时，需要配合后面讲到的 `hibus_wait_for_packet` 函数使用。
+`hbdbus_call_procedure` 提供了异步调用远程过程的接口：发起调用后会立即返回，然后在回调函数（`result_handler`）中等待结果或错误。此时，需要配合后面讲到的 `hbdbus_wait_for_packet` 函数使用。
 
-`hibus_call_procedure_and_wait` 提供了同步调用远程过程的接口：发起调用后将等待结果或错误然后返回。注意，在等待返回值的过程中，可能会收到事件，此时，该函数会调用相应的事件处理器。
+`hbdbus_call_procedure_and_wait` 提供了同步调用远程过程的接口：发起调用后将等待结果或错误然后返回。注意，在等待返回值的过程中，可能会收到事件，此时，该函数会调用相应的事件处理器。
 
 #### 等待并分发数据包
 
 ```c
-int hibus_wait_and_dispatch_packet (hibus_conn* conn, struct timeval *timeout);
+int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout);
 ```
 
 该函数检查服务器发过来的数据，并调用相应的事件处理器或者结果处理器。通常在一个循环中使用，如：
@@ -1201,7 +1201,7 @@ int hibus_wait_and_dispatch_packet (hibus_conn* conn, struct timeval *timeout);
 
         ...
 
-        hibus_wait_and_dispatch_packet (conn, &timeout);
+        hbdbus_wait_and_dispatch_packet (conn, &timeout);
 
         ...
     }
@@ -1226,10 +1226,10 @@ int hibus_wait_and_dispatch_packet (hibus_conn* conn, struct timeval *timeout);
    - `$owner`：表示创建该过程或者事件的应用名。
 1. 使用 `!` 前缀时，表示排除给定的匹配模式。
 
-如下面的模式列表，用于匹配创建当前方法或者事件的应用，以及 hibus 应用本身：
+如下面的模式列表，用于匹配创建当前方法或者事件的应用，以及 hbdbus 应用本身：
 
 ```
-    $owner, cn.fmsoft.hybridos.hibus
+    $owner, cn.fmsoft.hybridos.hbdbus
 ```
 
 如下模式列表，用于匹配所有不以 `cn.fmsoft.hybridos.` 打头的应用：
@@ -1246,8 +1246,8 @@ int hibus_wait_and_dispatch_packet (hibus_conn* conn, struct timeval *timeout);
 
 跨设备（主机）连接有两种思路：
 
-1. hiBus 服务器使用 WebSocket 在非回环地址上监听连接请求，另一个主机上的应用通过 WebSocket 直接连接到该服务器。问题：如何对另一台主机上的应用进行身份验证？
-1. 在不同的 hiBus 服务器实例之间建立中继服务，所有针对另一个主机上的请求，由 hiBus 服务器之间通过中继完成，从而实现跨主机的远程过程调用或者事件订阅。此种设计下，身份验证只在 hiBus 服务器之间进行，各主机上的应用身份验证，由本机处理。这样的话，本机 WebSocket 的事件和过程调用端口均只在本地回环地址上提供服务。比如，当过程调用的目标主机非本机时，hiBus 服务器可将该请求转发给目标主机所在的 hiBus 服务器，然后将结果转发给调用者。
+1. HBDBus 服务器使用 WebSocket 在非回环地址上监听连接请求，另一个主机上的应用通过 WebSocket 直接连接到该服务器。问题：如何对另一台主机上的应用进行身份验证？
+1. 在不同的 HBDBus 服务器实例之间建立中继服务，所有针对另一个主机上的请求，由 HBDBus 服务器之间通过中继完成，从而实现跨主机的远程过程调用或者事件订阅。此种设计下，身份验证只在 HBDBus 服务器之间进行，各主机上的应用身份验证，由本机处理。这样的话，本机 WebSocket 的事件和过程调用端口均只在本地回环地址上提供服务。比如，当过程调用的目标主机非本机时，HBDBus 服务器可将该请求转发给目标主机所在的 HBDBus 服务器，然后将结果转发给调用者。
 
 ## 附：商标声明
 
