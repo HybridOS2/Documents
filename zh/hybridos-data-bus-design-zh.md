@@ -1,15 +1,14 @@
 # 合璧操作系统设备端数据总线概要设计
 
-【主题】合璧操作系统设备端数据总线概要设计  
-【概要】本文阐述合璧操作系统设备端数据总线（HBDBus）设计  
-【版本】2.0  
-【作者】魏永明  
-【日期】2023 年 05 月  
-【状态】定稿  
-【版本】0.9  
-【作者】魏永明  
-【日期】2020 年 11 月  
-【状态】定稿  
+Subject: HybridOS Data Bus Design  
+Version: 2.0  
+Author: Vincent Wei  
+Category: Design Document  
+Creation Date: Nov., 2020  
+Last Modified Date: May 12, 2023  
+Status: Release  
+Release Name: 硕鼠  
+Language: Chinese
 
 **版权声明**
 
@@ -24,78 +23,88 @@
 
 **目录**
 
-- [基本框架及术语](#基本框架及术语)
-- [协议及接口](#协议及接口)
-   + [套接字接口](#套接字接口)
-   + [协议](#协议)
-      * [连接](#连接)
-      * [身份识别](#身份识别)
-      * [过程调用请求](#过程调用请求)
-      * [过程调用结果](#过程调用结果)
-      * [转发过程调用请求给过程端点](#转发过程调用请求给过程端点)
-      * [产生事件](#产生事件)
-      * [收到事件](#收到事件)
-      * [乒乓心跳](#乒乓心跳)
-   + [HBDBus 内置过程](#hbdbus-内置过程)
-      * [注册过程](#注册过程)
-      * [撤销过程](#撤销过程)
-      * [注册事件](#注册事件)
-      * [撤销事件](#撤销事件)
-      * [订阅事件](#订阅事件)
-      * [取消事件订阅](#取消事件订阅)
-      * [列出已连接端点](#列出已连接端点)
-      * [列出已注册过程](#列出已注册过程)
-      * [列出已注册事件](#列出已注册事件)
-      * [列出事件的订阅者](#列出事件的订阅者)
-      * [回声](#回声)
-   + [HBDBus 内置事件](#hbdbus-内置事件)
-      * [新行者事件](#新行者事件)
-      * [行者断开事件](#行者断开事件)
-      * [丢失事件发生器事件](#丢失事件发生器事件)
-      * [撤销泡泡事件](#撤销泡泡事件)
-- [架构及关键模块](#架构及关键模块)
-   + [架构及服务器模块构成](#架构及服务器模块构成)
-   + [命令行](#命令行)
-   + [客户端接口](#客户端接口)
-      * [全局类型](#全局类型)
-      * [连接管理](#连接管理)
-      * [数据包读写函数](#数据包读写函数)
-      * [辅助函数](#辅助函数)
-      * [过程管理](#过程管理)
-      * [事件管理](#事件管理)
-      * [订阅事件](#订阅事件)
-      * [调用过程](#调用过程)
-      * [等待并分发数据包](#等待并分发数据包)
-- [其他](#其他)
-   + [端点权限管理](#端点权限管理)
-   + [跨设备连接的思考](#跨设备连接的思考)
-- [附：商标声明](#附商标声明)
+[//]:# (START OF TOC)
 
-## 基本框架及术语
+- [1) 基本框架及术语](#1-基本框架及术语)
+- [2) 协议及接口](#2-协议及接口)
+   + [2.1) 套接字接口](#21-套接字接口)
+   + [2.2) 协议](#22-协议)
+      * [2.2.1) 连接](#221-连接)
+      * [2.2.2) 身份识别](#222-身份识别)
+      * [2.2.3) 过程调用请求](#223-过程调用请求)
+      * [2.2.4) 过程调用结果](#224-过程调用结果)
+      * [2.2.5) 转发过程调用请求给过程端点](#225-转发过程调用请求给过程端点)
+      * [2.2.6) 产生事件](#226-产生事件)
+      * [2.2.7) 收到事件](#227-收到事件)
+      * [2.2.8) 乒乓心跳](#228-乒乓心跳)
+   + [2.3) HBDBus 内置过程](#23-hbdbus-内置过程)
+      * [2.3.1) 注册过程](#231-注册过程)
+      * [2.3.2) 撤销过程](#232-撤销过程)
+      * [2.3.3) 注册事件](#233-注册事件)
+      * [2.3.4) 撤销事件](#234-撤销事件)
+      * [2.3.5) 订阅事件](#235-订阅事件)
+      * [2.3.6) 取消事件订阅](#236-取消事件订阅)
+      * [2.3.7) 列出已连接端点](#237-列出已连接端点)
+      * [2.3.8) 列出已注册过程](#238-列出已注册过程)
+      * [2.3.9) 列出已注册事件](#239-列出已注册事件)
+      * [2.3.10) 列出事件的订阅者](#2310-列出事件的订阅者)
+      * [2.3.11) 回声](#2311-回声)
+   + [2.4) HBDBus 内置事件](#24-hbdbus-内置事件)
+      * [2.4.1) 新行者事件](#241-新行者事件)
+      * [2.4.2) 行者断开事件](#242-行者断开事件)
+      * [2.4.3) 丢失事件发生器事件](#243-丢失事件发生器事件)
+      * [2.4.4) 撤销泡泡事件](#244-撤销泡泡事件)
+- [3) 架构及关键模块](#3-架构及关键模块)
+   + [3.1) 架构及服务器模块构成](#31-架构及服务器模块构成)
+   + [3.2) 命令行](#32-命令行)
+   + [3.3) 客户端接口](#33-客户端接口)
+      * [3.3.1) 全局类型](#331-全局类型)
+      * [3.3.2) 连接管理](#332-连接管理)
+      * [3.3.3) 数据包读写函数](#333-数据包读写函数)
+      * [3.3.4) 辅助函数](#334-辅助函数)
+      * [3.3.5) 过程管理](#335-过程管理)
+      * [3.3.6) 事件管理](#336-事件管理)
+      * [3.3.7) 订阅事件](#337-订阅事件)
+      * [3.3.8) 调用过程](#338-调用过程)
+      * [3.3.9) 等待并分发数据包](#339-等待并分发数据包)
+- [4) 其他](#4-其他)
+   + [4.1) 端点权限管理](#41-端点权限管理)
+   + [4.2) 跨设备连接的思考](#42-跨设备连接的思考)
+- [附.1) 商标声明](#附1-商标声明)
+
+[//]:# (END OF TOC)
+
+## 1) 基本框架及术语
 
 下图给出了 HybridOS 设备侧的系统架构图：
 
 ```
- ---------------------------------------------------------------------------------
-| DockerBar, StatusBar,   |                   |           | Input Method Window,  |
-| Screen Lock, Launcher,  | App Main Windows  |  N/A      | System Alert Window,  |        - main windows
-| Notification...         |                   |           | ...                   |
- ---------------------------------------------------------------------------------
-|      System Manager     |     App Agent     | Wallpaper | mginit w/ compositor  |____    - processes
- ---------------------------------------------------------------------------------     |
-|                   hiWebKit                  |                                   |    |
- ---------------------------------------------                                    |    |
-|  MiniGUI, hiCairo, hiMesa, SQLite, FreeType, HarfBuzz, LibPNG, LibJPEG, ...     |    | HBDBus
-|                                                                                 |    |
- ---------------------------------------------------------------------------------     |
-|                           HybridOS servers and user daemons                     |____|
- ---------------------------------------------------------------------------------
-|                          Python runtime environment (optional)                  |
-|                             LibZ, CURL, LibGcrypt, ...                          |
-|                               C/C++ runtime environment                         |
- ---------------------------------------------------------------------------------
-|                               Linux Kernel/Drivers                              |
- ---------------------------------------------------------------------------------
+ ----------------------------------------------------------------------
+| HVML-based System Apps  |  HVML-based Apps  |  Native System Apps   |
+|  --------------------   |   ------------    |  -----------------    |
+| DockerBar, StatusBar,   | Caculator,        |    Input Method       |____
+| Screen Lock, Launcher,  | Contacts,         |    System Alert       |    |
+| Notification,           |                   |      Wallpaper        |    |
+| Settings, ...           |                   | mginit w/ compositor  |    |
+ ---------------------------------------------------------------------     |
+|                       HybridOS System Services                      |____|
+|        --------------------------------------------------           |    |
+|               HBDBusd, HBDInetd, HBDAppManager, ...                 |    |
+ ---------------------------------------------------------------------     |
+|                     HVML runtime environment                        |    |
+|        --------------------------------------------------           |____|
+|                       purc, xGUI Pro, ...                           | HBDBus
+ ---------------------------------------------------------------------
+|                Python runtime environment (optional)                |
+ ---------------------------------------------------------------------
+|                     C/C++ runtime environment                       |
+|        --------------------------------------------                 |
+|             PurC, WebKitHBD, MiniGUI, CairoHBD, MesaHBD,            |
+|           SQLite, FreeType, HarfBuzz, LibPNG, LibJPEG,              |
+|                LibZ, CURL, OpenSSL, LibGcrypt, ...                  |
+ ---------------------------------------------------------------------
+|                         Linux Kernel/Drivers                        |
+ ---------------------------------------------------------------------
 ```
 
 在 HybridOS 中，始终贯彻着一个重要的设计思想：数据驱动。而不论是单一应用场景还是多应用场景，HBDBus 将成为 HybridOS 连接 App 和底层功能模块的纽带；甚至在将来，成为连接局域网内不同设备节点的纽带。
@@ -126,7 +135,7 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
 
 ```
              -------------------------------
-            |  hiWebKit-based GUI runner    |
+            |      HVML-based App Runner    |
             |-------------------------------|
             |   Event subscribers           |
             |   Procedure callers           |
@@ -168,11 +177,11 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
 - `localhost`：指本机。
 - `cn.fmsoft.hybridos.ibus`：保留的应用名称，指 HBDBus 本身，注册或注销事件或过程时，向该应用发送指定的过程调用。该应用也可提供一些一般性的系统操作命令以及事件。
 
-## 协议及接口
+## 2) 协议及接口
 
 本协议的设计考虑到了跨设备，多行者的情形，但当前的 HBDBus 服务器版本仅处理本机情形。
 
-### 套接字接口
+### 2.1) 套接字接口
 
 1. UnixSocket 端口：
    - `/var/run/hbdbus.sock`：通讯端口，用于过程调用、发送和接收事件。
@@ -180,19 +189,19 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
    - `7700`：通讯端口，用于过程调用、发送和接收事件。
    - `7701`：保留；或可用于中继功能。
 
-理论上，当 HBDBus 服务器运行在 WebSocket 端口且绑定到非本机回环（loopback）地址上时，有能力为其他设备节点提供事件及过程调用服务。
+当 HBDBus 服务器运行在 WebSocket 端口且绑定到非本机回环（loopback）地址上时，有能力为其他设备节点提供事件及过程调用服务。
 
-### 协议
+### 2.2) 协议
 
-#### 连接
+#### 2.2.1) 连接
 
 当客户端通过 WebSocket 连接到服务器时，WebSocket 规范规定了初始的连接处理。但通过 UnixSocket 连接时，服务器可能在达到资源上限或者其他错误情形下拒绝客户端的连接请求，此时，服务器向客户端发送如下数据包，然后断开连接：
 
 ```json
 {
     "packetType": "error",
-    "protocolName": "HIBUS",
-    "protocolVersion": 90,
+    "protocolName": "HBDBUS",
+    "protocolVersion": 200,
     "causedBy": [ "event" | "call" | "result" ],
     "causedId": "<event_id> | <call_id> | <result_id> ",
     "retCode": 503,
@@ -201,8 +210,8 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
 ```
 
 其中，
-- `protocolName`：包含协议名称，当前取 `HIBUS`。
-- `protocolVersion`：包含协议版本号，正整数。
+- `protocolName`：包含协议名称，当前取 `HBDBUS`。
+- `protocolVersion`：包含协议版本号，正整数。当前版本为 200。
 - `causedBy`: 包含导致该错误的数据包类型，可取 `event`、`call`、`result` 等。该字段可选，若缺失，表示不可恢复的一般性错误，这种情况下，服务器通常会断开连接。
 - `causedId`：包含导致该错误的数据包标识符。该字段仅在 `causedBy` 字段存在时出现。
 - `retCode`：包含错误码，一般性错误时，可能的取值有（来自 HTTP 状态码）：
@@ -211,7 +220,7 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
     + 505（Internal Server Error）：内部错误。
 - `retMsg`：包含简单的信息。
 
-#### 身份识别
+#### 2.2.2) 身份识别
 
 当客户端（某个应用的某个行者）连接到上述套接字端口之后，服务器将首先发送一个挑战码（Challenge Code）给客户端，客户端发送身份信息给服务器，服务器据此确定客户端代表的应用名称。
 
@@ -235,8 +244,8 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
 ```json
 {
     "packetType": "auth",
-    "protocolName": "HIBUS",
-    "protocolVersion": 90,
+    "protocolName": "HBDBUS",
+    "protocolVersion": 200,
     "challengeCode": "..."
 }
 ```
@@ -246,8 +255,8 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
 ```json
 {
     "packetType": "auth",
-    "protocolName": "HIBUS",
-    "protocolVersion": 90,
+    "protocolName": "HBDBUS",
+    "protocolVersion": 200,
     "hostName": "localhost",
     "appName": "cn.fmsoft.hybridos.inetd",
     "runnerName": "self",
@@ -295,7 +304,7 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
 
 注：在单一应用场景下，由于不安装第三方应用，所以应用的身份验签可以做简化处理；而在多应用场景下，需要一个额外的应用管理器配合身份验证。
 
-#### 过程调用请求
+#### 2.2.3) 过程调用请求
 
 发起执行特定过程（procedure）的请求时，向 HBDBus 服务器写入如下 JSON 数据：
 
@@ -327,8 +336,8 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
 ```json
 {
     "packetType": "error",
-    "protocolName": "HIBUS",
-    "protocolVersion": 90,
+    "protocolName": "HBDBUS",
+    "protocolVersion": 200,
     "causedBy": "call",
     "causedId": "<unique_call_identifier>",
     "retCode": 503,
@@ -355,7 +364,7 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
    - 504 Gateway Timeout：表示执行该调用的过程超时。
    - 507 Insufficient Storage：表示遇到内存或存储不足的问题。
 
-#### 过程调用结果
+#### 2.2.4) 过程调用结果
 
 HBDBus 服务器会首先将过程调用请求转发给过程端点，根据过程处理器的处理结果返回结果标识符、请求标识符、状态码以及可能的结果给调用者。相应的数据包格式如下：
 
@@ -421,7 +430,7 @@ HBDBus 服务器会首先将过程调用请求转发给过程端点，根据过�
 - `resultId`：标识结果的一个全局唯一字符串。
 - `timeDiff`：自收到结果数据包到执行转发所经过的时间，浮点数，单位秒。
 
-#### 转发过程调用请求给过程端点
+#### 2.2.5) 转发过程调用请求给过程端点
 
 HBDBus 服务器收到执行特定过程的请求后，首先做如下检查：
 
@@ -453,7 +462,7 @@ HBDBus 服务器收到执行特定过程的请求后，首先做如下检查：
 一般而言，为防止出现过程处理器的重入情形，服务器应保证在一个过程调用连接上（对应于单个应用），一次只处理一个过程，故而需要使用队列来维护多个过程调用请求。
 但调用者可发起多个请求，然后根据 `resultId` 和 `callId` 来跟踪这些请求返回的结果数据。
 
-#### 产生事件
+#### 2.2.6) 产生事件
 
 当事件发生器产生一个新的事件后，向服务器写入如下格式的 JSON 数据。产生的事件数据包通常具有如下格式：
 
@@ -499,8 +508,8 @@ HBDBus 服务器收到执行特定过程的请求后，首先做如下检查：
 ```json
 {
     "packetType": "error",
-    "protocolName": "HIBUS",
-    "protocolVersion": 90,
+    "protocolName": "HBDBUS",
+    "protocolVersion": 200,
     "causedBy": "event",
     "causedId": "<unique_event_identifier>",
     "retCode": 503,
@@ -521,7 +530,7 @@ HBDBus 服务器收到执行特定过程的请求后，首先做如下检查：
    - 504 Gateway Timeout：表示执行该调用的过程超时。
    - 507 Insufficient Storage：表示遇到内存或存储不足的问题。
 
-#### 收到事件
+#### 2.2.7) 收到事件
 
 当服务器收到一个新的事件后，将把该事件转发给所有的订阅者。事件订阅者将从服务器获得该事件数据。收到的事件数据包通常具有如下格式：
 
@@ -546,15 +555,15 @@ HBDBus 服务器收到执行特定过程的请求后，首先做如下检查：
 - `fromBubble` 是事件的泡泡名称。
 - `bubbleData` 包含真正的事件泡泡数据。注意，泡泡数据可使用 JSON 表达，但转为字符串传递，由事件发生器和接收器负责解析。
 
-#### 乒乓心跳
+#### 2.2.8) 乒乓心跳
 
 一般而言，在套接字连接上使用乒乓心跳可以有效检测连接的意外丢失。WebSocket 规范规定了心跳的处理机制，和 WebSocket 类似，在 UnixSocket 的连接中，服务器和客户端之间，也将通过类似 WebSocket 的机制来处理乒乓心跳。这种处理由底层的通讯协议进行，上层无须关系。
 
-### HBDBus 内置过程
+### 2.3) HBDBus 内置过程
 
 HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
-#### 注册过程
+#### 2.3.1) 注册过程
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/registerProcedure`
 - 参数：
@@ -596,7 +605,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 }
 ```
 
-#### 撤销过程
+#### 2.3.2) 撤销过程
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/revokeProcedure`
 - 参数：
@@ -607,7 +616,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
    + `423`：表示有调用者正在等待该过程返回结果，不能撤销。
    + `200`：表示成功。
 
-#### 注册事件
+#### 2.3.3) 注册事件
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/registerEvent`
 - 参数：
@@ -618,7 +627,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
    + `409`：表示重复的事件名称/方法名称。
    + `200`：表示成功。
 
-#### 撤销事件
+#### 2.3.4) 撤销事件
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/revokeEvent`
 - 参数：
@@ -628,7 +637,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
    + `403`：表示待撤销的事件不是由调用方注册的，所以不能撤销。
    + `200`：表示成功。
 
-#### 订阅事件
+#### 2.3.5) 订阅事件
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/subscribeEvent`
 - 参数：
@@ -639,7 +648,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
    + `403`：表示事件发生器不允许调用方订阅该事件。
    + `200`：表示成功。
 
-#### 取消事件订阅
+#### 2.3.6) 取消事件订阅
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/unsubscribeEvent`
 - 参数：
@@ -649,7 +658,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
    + `404`：表示调用方未订阅指定的事件；或者该事件已经被撤销。
    + `200`：表示成功。
 
-#### 列出已连接端点
+#### 2.3.7) 列出已连接端点
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listEndpoints`
 - 参数：无。
@@ -693,7 +702,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 注意：`retValue` 始终为 JSON 格式的字符串。
 
-#### 列出已注册过程
+#### 2.3.8) 列出已注册过程
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listProcedures`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
@@ -729,7 +738,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 注意：`retValue` 始终为 JSON 格式的字符串。
 
-#### 列出已注册事件
+#### 2.3.9) 列出已注册事件
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listEvents`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
@@ -765,7 +774,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 注意：`retValue` 始终为 JSON 格式的字符串。
 
-#### 列出事件的订阅者
+#### 2.3.10) 列出事件的订阅者
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listEventSubscribers`
 - 参数：
@@ -799,7 +808,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 注意：`retValue` 始终为 JSON 格式的字符串。
 
-#### 回声
+#### 2.3.11) 回声
 
 该过程主要用于测试。
 
@@ -827,11 +836,11 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 }
 ```
 
-### HBDBus 内置事件
+### 2.4) HBDBus 内置事件
 
 HBDBus 服务器通过 `builtin` 行者产生内置事件。
 
-#### 新行者事件
+#### 2.4.1) 新行者事件
 
 当一个新的行者成功连入 hbdbus 服务器时，产生 `NEWENDPOINT` 事件：
 
@@ -860,7 +869,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 - `bubbleData` 将以 JSON 字符串的形式传递，避免在服务器端做额外的解析。
 - 该事件仅允许本机中的 `cn.fmsoft.hybridos.*` 应用订阅。
 
-#### 行者断开事件
+#### 2.4.2) 行者断开事件
 
 当一个行者因为丢失连接或者长时间无响应而移除时，产生 `BROKENENDPOINT` 事件：
 
@@ -889,7 +898,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 - `bubbleData` 将以 JSON 字符串的形式传递，避免在服务器端做额外的解析。
 - 该事件仅允许本机中的 `cn.fmsoft.hybridos.*` 应用订阅。
 
-#### 丢失事件发生器事件
+#### 2.4.3) 丢失事件发生器事件
 
 当某个行者订阅了某个事件，但产生该事件的行者意外断开时，将向订阅者发送 `LOSTEVENTGENERATOR` 事件：
 
@@ -910,7 +919,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 
 注：不可订阅。
 
-#### 撤销泡泡事件
+#### 2.4.4) 撤销泡泡事件
 
 当某个行者订阅了某个事件，但事件发生器撤销该事件时，将向订阅者发送 `LOSTEVNTBUBBLE` 事件：
 
@@ -933,13 +942,13 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 
 注：不可订阅。
 
-## 架构及关键模块
+## 3) 架构及关键模块
 
 HBDBus 服务器使用 C/C++ 语言开发，由服务器程序、命令行程序和供客户端使用的函数库（以及头文件）三部分组成。
 
-### 架构及服务器模块构成
+### 3.1) 架构及服务器模块构成
 
-下图描述了 iBus 系统的架构以及服务器的主要模块构成。
+下图描述了 HBDBus 系统的架构以及服务器的主要模块构成。
 
 ```
     -----------       -----------        -----------
@@ -963,13 +972,13 @@ HBDBus 服务器使用 C/C++ 语言开发，由服务器程序、命令行程序
 |      Registered Event Manager    |   Registered Procedure Manager  |
 |                           Event Subscriber Manager                 |
  --------------------------------------------------------------------
-|           Event Dispatcher       |        Call Dispatcher          |     HBDBus Server
+|           Event Dispatcher       |        Call Dispatcher          | HBDBusD
  --------------------------------------------------------------------
 |                           The Builtin Endpoint                     |
  --------------------------------------------------------------------
 |                                Helpers                             |
 |   ------------------------------------------------------------     |
-|   |       JSON Processing        |    Security Processing     |    |          
+|   |       JSON Processing        |    Security Processing     |    |
  --------------------------------------------------------------------
 |                     UnixSocket Connection Manager                  |
  --------------------------------------------------------------------
@@ -1003,19 +1012,19 @@ HBDBus 服务器主要包含如下软件模块：
 - 内置端点（The Builtin Endpoint）：该模块实现 HBDBus 的内置过程。
 - 辅助模块（Helpers）：辅助模块中主要包括 JSON 的处理模块以及安全性处理模块。前者主要用于解析 JSON 格式的数据包并将其转换成内部结构，或者反之。后者主要提供基于非对称个加密算法的签名验证功能以及通配符处理功能等。
 
-### 命令行
+### 3.2) 命令行
 
 HBDBus 的命令行工具，将被编译为独立的程序，该程序以端点名 `edpt://localhost/cn.fmsoft.hybridos.hbdbus/cmdline` 连接到服务器，视为 HBDBus 本身的 `cmdline` 行者，以独立进程方式运行。
 
 使用该命令行工具时，可通过 HBDBus 内置过程来查询已注册过程、事件、特定事件的订阅者信息，亦可订阅特定事件，或者调用某个特定的过程。
 
-### 客户端接口
+### 3.3) 客户端接口
 
 客户端接口编译为独立函数库（libhbdbus.so），提供 C 语言接口，以方便使用不同编程语言开发的客户端使用这些接口注册/撤销过程、注册/撤销/订阅事件等。
 
 所有的客户端接口均是线程安全的，这样，我们可以用某个线程来实现某个行者。比如，我们可以在主线程中以 `event` 行者名连接到服务器，在主线程中只处理事件，而所有调用远程过程的功能则在另一个线程中实现，其行者名为 `call`。如此设计，可帮助构造符合数据驱动需求的良好应用架构。
 
-#### 全局类型
+#### 3.3.1) 全局类型
 
 ```c
 struct _hbdbus_conn;
@@ -1029,7 +1038,7 @@ typedef struct json_object hbdbus_json;
 
 `hbdbus_json` 是一个用来表示 JSON 对象的数据结构。
 
-#### 连接管理
+#### 3.3.2) 连接管理
 
 使用如下接口之一连接到 HBDBus 服务器：
 
@@ -1061,7 +1070,7 @@ int hbdbus_conn_socket_fd (hbdbus_conn* conn);
 int hbdbus_conn_socket_type (hbdbus_conn* conn);
 ```
 
-#### 数据包读写函数
+#### 3.3.3) 数据包读写函数
 
 客户端可直接使用如下函数读取一个数据包：
 
@@ -1077,7 +1086,7 @@ int hbdbus_send_text_packet (hbdbus_conn* conn, const char* text, unsigned int t
 
 注意，通常客户端不需要直接调用这几个底层的读写数据包函数。这些函数供 Python、JavaScript 等编程语言实现本地绑定功能时使用。另外，这些函数全部使用阻塞读写模式，故而在调用这些函数，尤其是读取函数之前，应通过 `select` 系统调用判断对应的文件描述符上是否存在相应的可读取数据。
 
-#### 辅助函数
+#### 3.3.4) 辅助函数
 
 行者可使用如下辅助函数来解析端点名称：
 
@@ -1107,7 +1116,7 @@ char* hbdbus_assemble_endpoint_alloc (const char* host_name, const char* app_nam
         const char* runner_name);
 ```
 
-#### 过程管理
+#### 3.3.5) 过程管理
 
 行者可以使用如下的接口注册或撤销过程：
 
@@ -1125,7 +1134,7 @@ int hbdbus_revoke_procedure (hbdbus_conn* conn, const char* method_name);
 
 `hbdbus_revoke_procedure` 函数用于撤销一个过程。
 
-#### 事件管理
+#### 3.3.6) 事件管理
 
 行者可以使用如下的接口注册或撤销事件：
 
@@ -1143,7 +1152,7 @@ int hbdbus_fire_event (hbdbus_conn* conn,
 
 `hbdbus_fire_event` 用于产生一个事件。
 
-#### 订阅事件
+#### 3.3.7) 订阅事件
 
 模块可以使用如下的接口订阅或者取消订阅一个事件：
 
@@ -1166,7 +1175,7 @@ int hbdbus_unsubscribe_event (hbdbus_conn* conn,
 
 `hbdbus_wait_for_event` 函数用于等待事件。
 
-#### 调用过程
+#### 3.3.8) 调用过程
 
 行者可使用如下接口调用过程：
 
@@ -1186,7 +1195,7 @@ int hbdbus_call_procedure_and_wait (hbdbus_conn* conn, const char* endpoint, con
 
 `hbdbus_call_procedure_and_wait` 提供了同步调用远程过程的接口：发起调用后将等待结果或错误然后返回。注意，在等待返回值的过程中，可能会收到事件，此时，该函数会调用相应的事件处理器。
 
-#### 等待并分发数据包
+#### 3.3.9) 等待并分发数据包
 
 ```c
 int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout);
@@ -1207,9 +1216,9 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
     }
 ```
 
-## 其他
+## 4) 其他
 
-### 端点权限管理
+### 4.1) 端点权限管理
 
 一个应用是否可以调用某个特定的过程或者订阅某个特定的事件，可以通过 `forHost` 和 `forApp` 两个参数来指定。
 
@@ -1238,9 +1247,9 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
     !cn.fmsoft.hybridos.*, *
 ```
 
-更详细的访问权限管理，可参阅[合璧操作系统的应用管理](hybridos-app-management-zh.md)。
+更详细的访问权限管理，可参阅[合璧操作系统的应用管理](hybridos-app-management-spec-zh.md)。
 
-### 跨设备连接的思考
+### 4.2) 跨设备连接的思考
 
 注：当前版本仅处理本机上的连接。
 
@@ -1249,7 +1258,7 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
 1. HBDBus 服务器使用 WebSocket 在非回环地址上监听连接请求，另一个主机上的应用通过 WebSocket 直接连接到该服务器。问题：如何对另一台主机上的应用进行身份验证？
 1. 在不同的 HBDBus 服务器实例之间建立中继服务，所有针对另一个主机上的请求，由 HBDBus 服务器之间通过中继完成，从而实现跨主机的远程过程调用或者事件订阅。此种设计下，身份验证只在 HBDBus 服务器之间进行，各主机上的应用身份验证，由本机处理。这样的话，本机 WebSocket 的事件和过程调用端口均只在本地回环地址上提供服务。比如，当过程调用的目标主机非本机时，HBDBus 服务器可将该请求转发给目标主机所在的 HBDBus 服务器，然后将结果转发给调用者。
 
-## 附：商标声明
+## 附.1) 商标声明
 
 本文提到的产品、技术或者术语名称，涉及北京飞漫软件技术有限公司在中国或其他地区注册的如下商标：
 
@@ -1279,11 +1288,11 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
 
 ![MiniGUI](https://www.fmsoft.cn/application/files/cache/thumbnails/54e87b0c49d659be3380e207922fff63.jpg)
 
-6) xGUI
+7) xGUI
 
 ![xGUI](https://www.fmsoft.cn/application/files/cache/thumbnails/7fbcb150d7d0747e702fd2d63f20017e.jpg)
 
-7) miniStudio
+8) miniStudio
 
 ![miniStudio](https://www.fmsoft.cn/application/files/cache/thumbnails/82c3be63f19c587c489deb928111bfe2.jpg)
 
