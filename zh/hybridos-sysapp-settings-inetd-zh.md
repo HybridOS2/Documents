@@ -690,11 +690,32 @@ unsigned int get_hotspots (wifi_context * context, wifi_hotspot ** hotspots);
 
 ![MiniGUI](https://www.fmsoft.cn/application/files/cache/thumbnails/54e87b0c49d659be3380e207922fff63.jpg)
 
-6) xGUI
+7) xGUI
 
 ![xGUI](https://www.fmsoft.cn/application/files/cache/thumbnails/7fbcb150d7d0747e702fd2d63f20017e.jpg)
 
-7) miniStudio
+8) miniStudio
 
 ![miniStudio](https://www.fmsoft.cn/application/files/cache/thumbnails/82c3be63f19c587c489deb928111bfe2.jpg)
+
+9) HVML
+
+![HVML](https://www.fmsoft.cn/application/files/8116/1931/8777/HVML256132.jpg)
+
+10) 呼噜猫
+
+![呼噜猫](https://www.fmsoft.cn/application/files/8416/1931/8781/256132.jpg)
+
+11) Purring Cat
+
+![Purring Cat](https://www.fmsoft.cn/application/files/2816/1931/9258/PurringCat256132.jpg)
+
+12) PurC
+
+![PurC](https://www.fmsoft.cn/application/files/5716/2813/0470/PurC256132.jpg)
+
+[FMSoft Technologies]: https://www.fmsoft.cn
+[HybridOS]: https://hybridos.fmsoft.cn
+[MiniGUI]: http:/minigui.fmsoft.cn
+[HVML]: https://hvml.fmsoft.cn
 

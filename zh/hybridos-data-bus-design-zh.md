@@ -1296,3 +1296,24 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
 
 ![miniStudio](https://www.fmsoft.cn/application/files/cache/thumbnails/82c3be63f19c587c489deb928111bfe2.jpg)
 
+9) HVML
+
+![HVML](https://www.fmsoft.cn/application/files/8116/1931/8777/HVML256132.jpg)
+
+10) 呼噜猫
+
+![呼噜猫](https://www.fmsoft.cn/application/files/8416/1931/8781/256132.jpg)
+
+11) Purring Cat
+
+![Purring Cat](https://www.fmsoft.cn/application/files/2816/1931/9258/PurringCat256132.jpg)
+
+12) PurC
+
+![PurC](https://www.fmsoft.cn/application/files/5716/2813/0470/PurC256132.jpg)
+
+[FMSoft Technologies]: https://www.fmsoft.cn
+[HybridOS]: https://hybridos.fmsoft.cn
+[MiniGUI]: http:/minigui.fmsoft.cn
+[HVML]: https://hvml.fmsoft.cn
+
