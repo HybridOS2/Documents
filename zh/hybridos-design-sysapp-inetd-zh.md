@@ -168,7 +168,7 @@ Language: Chinese
                     {
                         "device":"eth0",
                         "type":"<wifi|wired|mobile|loop>",
-                        "status":"<down|up|link>",
+                        "status":"<down|up|running>",
                         "hardwareAddr":"AB:CD:EF:12:34:56",
                         "inet": {
                             "address": "192.168.1.128",
@@ -405,8 +405,8 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
 ```json
     {
         "device":"device_name",
-        "type":"<wifi|ethernet|mobile|lo>",
-        "status":"<down|up|link>"
+        "type":"<wifi|wired|mobile|loopback>",
+        "status":"<down|up|running>"
     }
 ```
 - 使用描述：
