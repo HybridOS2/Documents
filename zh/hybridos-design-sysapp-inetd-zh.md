@@ -33,14 +33,18 @@ Language: Chinese
       * [2.1.2) 关闭网络设备](#212-关闭网络设备)
       * [2.1.3) 查询网络设备状态](#213-查询网络设备状态)
       * [2.1.4) 开始扫描网络热点](#214-开始扫描网络热点)
-      * [2.1.5) 停止网络热点扫描 ](#215-停止网络热点扫描-)
-      * [2.1.6) 连接网络热点](#216-连接网络热点)
-      * [2.1.7) 中断网络连接](#217-中断网络连接)
-      * [2.1.8) 获得当前网络详细信息](#218-获得当前网络详细信息)
+      * [2.1.5) 停止网络热点扫描](#215-停止网络热点扫描)
+      * [2.1.6) 获取热点列表](#216-获取热点列表)
+      * [2.1.7) 连接网络热点](#217-连接网络热点)
+      * [2.1.8) 中断网络连接](#218-中断网络连接)
+      * [2.1.9) 获得当前网络详细信息](#219-获得当前网络详细信息)
    + [2.2) 可订阅事件](#22-可订阅事件)
       * [2.2.1) 网络设备发生变化](#221-网络设备发生变化)
       * [2.2.2) 网络热点列表发生变化](#222-网络热点列表发生变化)
-      * [2.2.3) 当前网络信号强度发生变化](#223-当前网络信号强度发生变化)
+      * [2.2.3) 连接到热点](#223-连接到热点)
+      * [2.2.4) 连接已配置](#224-连接已配置)
+      * [2.2.5) 断开热点](#225-断开热点)
+      * [2.2.6) 当前网络信号强度发生变化](#226-当前网络信号强度发生变化)
 - [3) 错误代码表](#3-错误代码表)
 - [附.1) 商标声明](#附1-商标声明)
 
@@ -144,7 +148,7 @@ Language: Chinese
      + `type`：网络设备类型；
      + `status`：网络设备状态；
      + `mac`：网络设备MAC地址；
-     + `inet`：网络设备IPv4地址信息；
+     + `inet4`：网络设备IPv4地址信息；
      + `inet6`：网络设备IPv4地址信息；
    + `errCode`：返回错误编码，见附表；
    + `errMsg`：错误信息。
@@ -156,7 +160,7 @@ Language: Chinese
                         "type":"<wifi|wired|mobile|loop>",
                         "status":"<down|up|running>",
                         "hardwareAddr":"AB:CD:EF:12:34:56",
-                        "inet": {
+                        "inet4": {
                             "address": "192.168.1.128",
                             "netmask": "255.255.255.0",
                             "broadcastAddr": "192.168.1.255",   /* No P2P link only */
@@ -192,13 +196,14 @@ Language: Chinese
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
    + `device`：网络设备名称；
+   + `interval`：两次扫描的间隔时间（单位：秒）。
 ```json
     {
         "device":"device_name",
     }
 ```
 - 返回值：
-   + `data`：返回的数据：
+   + `data`：当前热点信息数组，各成员包含如下键值：
      + `bssid`：
      + `ssid`：网络名称；
      + `frequency`：网络频率；
@@ -213,7 +218,7 @@ Language: Chinese
                     {
                          "bssid": "f0:b4:29:24:18:eb",
                          "ssid": "fmsoft-dev",
-                         "frequency": "2427MHZ",
+                         "frequency": "2427 MHz",
                          "signalStrength": 65,
                          "capabilities": ["WPA-PSK-CCMP+TKIP","WPA2-PSK-CCMP+TKIP","WPS","ESS"],
                          "isConnected":true
@@ -232,7 +237,7 @@ Language: Chinese
 该过程将返回扫描结果。热点列表根据信号强度从大到小排列。如有当前连接网络，则改网络排在第一个。
 
 
-#### 2.1.5) 停止网络热点扫描 
+#### 2.1.5) 停止网络热点扫描
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiStopScanHotspots`
 - 权限：
@@ -255,10 +260,54 @@ Language: Chinese
     }
 ```
 
-inetd行者将停止后台进行的定时热点扫描操作，这将导致停止发送`WIFIHOTSPOTSCHANGED`和`NETWORKDEVICECHANGED`泡泡。
+HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止发送 `WIFIHOTSPOTSCHANGED` 事件泡泡。
 
+#### 2.1.6) 获取热点列表
 
-#### 2.1.6) 连接网络热点
+- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiGetHotspotList`
+- 权限：
+   + 允许的主机：`localhost`
+   + 允许的应用：`cn.fmsoft.hybridos.*`
+- 参数：
+   + `device`：网络设备名称；
+```json
+    {
+        "device":"device_name",
+    }
+```
+- 返回值：
+   + `data`：返回的数据，当前热点信息数组，各成员包含如下键值：
+     + `bssid`：
+     + `ssid`：网络名称；
+     + `frequency`：网络频率；
+     + `signalStrength`：网络信号强度；
+     + `capabilities`：可用的加密方式；
+     + `isConnected`：当前是否连接。
+   + `errCode`：返回错误编码，见附表；
+   + `errMsg`：错误信息。
+   + 样例：
+
+```json
+    {
+        "data": [
+                    {
+                         "bssid": "f0:b4:29:24:18:eb",
+                         "ssid": "fmsoft-dev",
+                         "frequency": "2427 MHz",
+                         "signalStrength": 65,
+                         "capabilities": ["WPA-PSK-CCMP+TKIP","WPA2-PSK-CCMP+TKIP","WPS","ESS"],
+                         "isConnected":true
+                    },
+                    {
+                         ......
+                    }
+                ],
+        "errCode":0,
+        "errMsg":"OK"
+    }
+```
+
+#### 2.1.7) 连接网络热点
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiConnect`
 - 权限：
@@ -283,7 +332,7 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
    + `errCode`：返回错误编码，见附表；
    + `errMsg`：错误信息。
 ```json
-    { 
+    {
         "errCode":0,
         "errMsg":"OK"
     }
@@ -292,7 +341,7 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
 在当前版本中，没有实现`autoConnect`、`default`对应的功能。
 
 
-#### 2.1.7) 中断网络连接
+#### 2.1.8) 中断网络连接
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiDisconnect`
 - 权限：
@@ -301,7 +350,7 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
 - 参数：
    + `device`：网络设备名称；
 ```json
-    { 
+    {
         "device":"device_name",
     }
 ```
@@ -309,13 +358,13 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
    + `errCode`：返回错误编码，见附表；
    + `errMsg`：错误信息。
 ```json
-    { 
+    {
         "errCode":0,
         "errMsg":"OK"
     }
 ```
 
-#### 2.1.8) 获得当前网络详细信息
+#### 2.1.9) 获得当前网络详细信息
 
 - 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiGetNetworkInfo`
 - 权限：
@@ -324,7 +373,7 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
 - 参数：
    + `device`：网络设备名称；
 ```json
-    { 
+    {
         "device":"device_name",
     }
 ```
@@ -336,7 +385,7 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
      + `encryptionType`：加密方式；
      + `signalStrength`：信号强度；
      + `hardwareAddr`：硬件地址；
-     + `inet`：IPv4 地址信息；
+     + `inet4`：IPv4 地址信息；
      + `inet6`：IPv6 地址信息；
      + `frenquency`：网络信号频率；
      + `bitRate`：网络速度；
@@ -351,13 +400,13 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
                     "encryptionType":"WPA2",
                     "hardwareAddr":"AB:CD:EF:12:34:56",
                     "addressMethod:"dhcp",
-                    "inet": {
+                    "inet4": {
                         "address": "192.168.1.128",
                         "netmask": "255.255.255.0",
                         "broadcastAddr": "192.168.1.255",   /* No P2P link only */
                         "destinationAddr": "192.168.1.255", /* P2P link only */
                         "gateway": "192.168.1.1",
-                        "dns": "192.168.1.1",
+                        "DNSServers": "192.168.1.1,8.8.8.8",
                     },
                     "inet6": {
                         "address": ":fe80::583a:5e2d:fa3f:14ad",
@@ -365,7 +414,7 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
                         "broadcastAddr": "...", /* No P2P link only */
                         "destinationAddr": "...", /* P2P link only */
                         "gateway": "...",
-                        "dns": "...",
+                        "DNSServers": "...",
                     },
                     "frenquency":"5 GHz",
                     "signalStrength":65,
@@ -376,8 +425,7 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
     }
 ```
 
-如没有查到当前网络详细信息，则`data`为空，`errCode`返回错误原因。
-
+如没有查到当前网络详细信息，则`data`为空，`errCode` 返回错误原因。
 
 ### 2.2) 可订阅事件
 
@@ -401,54 +449,88 @@ inetd行者将停止后台进行的定时热点扫描操作，这将导致停止
 #### 2.2.2) 网络热点列表发生变化
 
 - 泡泡名称：`WIFIHOTSPOTSCHANGED`
-- bubbleData：
-   + `changed`：原有网络属性发生变化；
-   + `missed`：扫描后消失的热点数组；
-   + `found`：   扫描后新增加的热点数组；
-     + `bssid`：BSSID值；
-     + `ssid`：网络名称；
-     + `capabilities`：加密方式；
-     + `signalStrength`：信号强度，取值范围在0——100之间。
+- 泡泡数据：热点数组，每个成员包含如下信息：
+   + `bssid`：BSSID值；
+   + `ssid`：网络名称；
+   + `capabilities`：加密方式；
+   + `signalStrength`：信号强度，取值范围在0——100之间。
+- 使用描述：
+   + 若 WiFi 设备已被打开，HBDInetd 将定时扫描热点，并通过该事件发送给订阅该事件的行者；
+   + 如要获得完整的热点列表，则调用过程 `wifiStartScanHotspots`，通过其返回值获得。
+- 样例：
+
+```json
+        [
+            {
+                "bssid": "f0:b4:29:24:18:eb",
+                "ssid":"fmsoft-dev",
+                "capabilities": ["WPA-PSK-CCMP+TKIP", "WPA2-PSK-CCMP+TKIP", "WPS", "ESS"],
+                "signalStrength":65
+            },
+            {
+                ......
+            }
+        ]
+```
+
+
+#### 2.2.3) 连接到热点
+
+- 泡泡名称：`WIFICONNECTED`
+- 泡泡数据：
+   + `bssid`：BSSID值；
+   + `ssid`：网络SSID；
+   + `signalStrength`：网络信号强度，取值范围在0——100之间。
 ```json
     {
-        "found": [
-                    {
-                        "bssid": "f0:b4:29:24:18:eb",
-                        "ssid":"fmsoft-dev",
-                        "capabilities": ["WPA-PSK-CCMP+TKIP", "WPA2-PSK-CCMP+TKIP", "WPS", "ESS"],
-                        "signalStrength":65
-                    },
-                    {
-                        ......
-                    }
-                ],
-        "missed": [
-                    {
-                        "bssid": "f2:b3:29:24:18:eb"
-                    },
-                    {
-                        ......
-                    }
-                ],
-        "changed": [
-                    {
-                        "bssid": "f2:b3:29:24:18:eb",
-                        "signalStrength":65,
-                        "capabilities": ["WPA-PSK-CCMP+TKIP", "WPA2-PSK-CCMP+TKIP", "WPS", "ESS"]
-                    },
-                    {
-                        ......
-                    }
-                ]
+        "bssid":"f0:b4:29:24:18:eb",
+        "ssid":"fmsoft-dev",
+        "signalStrength":65
     }
 ```
+
 - 使用描述：
-   + 当调用`openDevice`过程后，inetd行者将定时扫描WiFi热点，并将相邻两次扫描所获得的热点列表差值，通过该事件发送给订阅该事件的行者；
-   + 如要获得完整的热点列表，则调用过程`wifiStartScanHotspots`，通过其返回值获得；
-   + `changed`数组中的元素，仅返回变化的属性。没有变化的属性并不返回。
+   + 当网络连接成功后发送该泡泡。
 
+#### 2.2.4) 连接已配置
 
-#### 2.2.3) 当前网络信号强度发生变化
+- 泡泡名称：`WIFICONFIGURED`
+- 泡泡数据：
+   + `bssid`：BSSID值；
+   + `ssid`：网络SSID；
+   + `signalStrength`：网络信号强度，取值范围在0——100之间。
+   + `inet4`：IPv4 地址信息。
+   + `inet6`：IPv6 地址信息。
+```json
+    {
+        "bssid":"f0:b4:29:24:18:eb",
+        "ssid":"fmsoft-dev",
+        "signalStrength":65,
+        "inet4": { ... },
+        "inet6": { ... },
+    }
+```
+
+- 使用描述：
+   + 当网络连接成功且配置成功后发送该泡泡。
+
+#### 2.2.5) 断开热点
+
+- 泡泡名称：`WIFIDISCONNECTED`
+- 泡泡数据：
+   + `bssid`：BSSID值；
+   + `ssid`：网络SSID；
+```json
+    {
+        "bssid":"f0:b4:29:24:18:eb",
+        "ssid":"fmsoft-dev",
+    }
+```
+
+- 使用描述：
+   + 当连接到指定热点的尝试失败或者热点消失时，产生该泡泡。
+
+#### 2.2.6) 当前网络信号强度发生变化
 
 - 泡泡名称：`WIFISIGNALSTRENGTHCHANGED`
 - bubbleData：
