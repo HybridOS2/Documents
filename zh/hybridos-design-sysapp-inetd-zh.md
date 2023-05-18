@@ -40,7 +40,7 @@ Language: Chinese
       * [2.1.9) 获得当前网络详细信息](#219-获得当前网络详细信息)
    + [2.2) 可订阅事件](#22-可订阅事件)
       * [2.2.1) 网络设备发生变化](#221-网络设备发生变化)
-      * [2.2.2) 网络热点列表发生变化](#222-网络热点列表发生变化)
+      * [2.2.2) 热点扫描结束](#222-热点扫描结束)
       * [2.2.3) 连接到热点](#223-连接到热点)
       * [2.2.4) 连接已配置](#224-连接已配置)
       * [2.2.5) 断开热点](#225-断开热点)
@@ -260,7 +260,7 @@ Language: Chinese
     }
 ```
 
-HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止发送 `WIFIHOTSPOTSCHANGED` 事件泡泡。
+HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止发送 `WIFISCANFINISHED` 事件泡泡。
 
 #### 2.1.6) 获取热点列表
 
@@ -446,33 +446,38 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络设备工作状态发生变化时，发送此事件。
 
-#### 2.2.2) 网络热点列表发生变化
+#### 2.2.2) 热点扫描结束
 
-- 泡泡名称：`WIFIHOTSPOTSCHANGED`
-- 泡泡数据：热点数组，每个成员包含如下信息：
-   + `bssid`：BSSID值；
-   + `ssid`：网络名称；
-   + `capabilities`：加密方式；
-   + `signalStrength`：信号强度，取值范围在0——100之间。
+- 泡泡名称：`WIFISCANFINISHED`
+- 泡泡数据：
+   + `hotspots`：若扫描失败，该键值为 `null`；若扫描成功，则包含该键值用于描述热点数组，每个成员包含如下信息：
+      + `bssid`：BSSID值；
+      + `ssid`：网络名称；
+      + `capabilities`：加密方式；
+      + `signalStrength`：信号强度，取值范围在0——100之间。
+   + `errCode`：该键值包含错误码；为 0 表示成功。
+   + `errMsg`：该键值包含错误信息。
 - 使用描述：
-   + 若 WiFi 设备已被打开，HBDInetd 将定时扫描热点，并通过该事件发送给订阅该事件的行者；
-   + 如要获得完整的热点列表，则调用过程 `wifiStartScanHotspots`，通过其返回值获得。
+   + 若 WiFi 设备已被打开，HBDInetd 将定时扫描热点，在扫描结束后通过该事件发送给订阅该事件的行者；
+   + 如要获得当前的热点列表，则调用过程 `wifiStartScanHotspots`，通过其返回值获得。
 - 样例：
 
 ```json
-        [
-            {
-                "bssid": "f0:b4:29:24:18:eb",
-                "ssid":"fmsoft-dev",
-                "capabilities": ["WPA-PSK-CCMP+TKIP", "WPA2-PSK-CCMP+TKIP", "WPS", "ESS"],
-                "signalStrength":65
-            },
-            {
-                ......
-            }
-        ]
+{
+    "success": true,
+    "hotspots":[
+        {
+            "bssid": "f0:b4:29:24:18:eb",
+            "ssid":"fmsoft-dev",
+            "capabilities": ["WPA-PSK-CCMP+TKIP", "WPA2-PSK-CCMP+TKIP", "WPS", "ESS"],
+            "signalStrength":65
+        },
+        {
+            ......
+        }
+    ]
+}
 ```
-
 
 #### 2.2.3) 连接到热点
 
