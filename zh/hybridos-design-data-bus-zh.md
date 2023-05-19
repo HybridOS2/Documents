@@ -70,6 +70,8 @@ Language: Chinese
 - [4) 其他](#4-其他)
    + [4.1) 端点权限管理](#41-端点权限管理)
    + [4.2) 跨设备连接的思考](#42-跨设备连接的思考)
+   + [附.1) 修订记录](#附1-修订记录)
+      * [RC1) 230531](#rc1-230531)
 - [附.1) 商标声明](#附1-商标声明)
 
 [//]:# (END OF TOC)
@@ -122,7 +124,7 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
 1. 应用（app）：合璧操作系统中，一个应用由多个不同的行者组成，这些行者可能使用不同的编程语言开发，在系统中以进程或线程的形式运行。
 1. 行者（runner）：行者用来区分一个应用的不同并行运行组件。在合璧操作系统中，一个应用可以有多个行者，通常以独立的进程或者线程形式存在。比如专门用于处理底层设备控制的行者，专门用于处理人机交互的行者。
 1. 事件（event）/泡泡（bubble）：事件名称中包含了主机名称、应用名称、行者名称以及泡泡名称。
-1. 过程（procedure）/方法（method）：过程名称中包含了主机名称、应用名称、行者名称以及方法名称。
+1. 过程（procedure）/方法（method）：过程 URI中包含了主机名称、应用名称、行者名称以及方法名称。
 
 在 HBDBus 中，一个应用的不同行者都可以作为客户端连接到 HBDBus 服务器上；单个应用的不同连接对应一个唯一的行者名称，每个行者都可以扮演如下单个角色或多个角色：
 
@@ -157,25 +159,25 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
              ------------------------------
 ```
 
-我们使用如下的端点（endpoint）名称来指定一个行者（含有主机名、应用名及行者名）：
+我们使用如下的 URI 指定一个行者（含有主机名、应用名及行者名）：
 
 - 行者：`edpt://<host_name>/<app_name>/<runner_name>`
 
-使用如下的字符串指代一个过程或事件：
+使用如下的 URI 指代一个过程或事件：
 
-- 过程：`edpt://<host_name>/<app_name>/<runner_name>/<method_name>`
-- 事件：`edpt://<host_name>/<app_name>/<runner_name>/<bubble_name>`
+- 过程：`edpt://<host_name>/<app_name>/<runner_name>/method/<method_name>`
+- 事件：`edpt://<host_name>/<app_name>/<runner_name>/bubble/<bubble_name>`
 
 其中，
 
 - `<host_name>` 符合 FQDN（Fully Qualified Domain Name）规范。长度不超过 127 字节。
 - `<app_name>` 一个字符串，字母开头，可包含字母、数字和句点，句点不能连续出现；不区分大小写，但习惯上使用全小写字母。类似 Android 的应用名称。长度不超过 127 字节。
-- `<runner_name>`、`<method_name>` 以及 `<bubble_name>` 符合常见编程语言的变量名规范，但不区分大小写。长度不超过 63 字节。按照惯例，我们一般使用全大写字母来表示泡泡名。
+- `<runner_name>`、`<method_name>` 以及 `<bubble_name>` 符合常见编程语言的变量名规范，但不区分大小写，其长度不超过 63 字节。按照惯例，我们一般使用首字母小写的驼峰命名法来命名方法名，用首字母大写的驼峰命名法命名泡泡名。
 
 我们保留如下特别的主机名称和应用名称：
 
 - `localhost`：指本机。
-- `cn.fmsoft.hybridos.ibus`：保留的应用名称，指 HBDBus 本身，注册或注销事件或过程时，向该应用发送指定的过程调用。该应用也可提供一些一般性的系统操作命令以及事件。
+- `cn.fmsoft.hybridos.hbdbus`：保留的应用名称，指 HBDBus 本身，注册或注销事件或过程时，向该应用发送指定的过程调用。该应用也可提供一些一般性的系统操作命令以及事件。
 
 ## 2) 协议及接口
 
@@ -434,7 +436,7 @@ HBDBus 服务器会首先将过程调用请求转发给过程端点，根据过�
 
 HBDBus 服务器收到执行特定过程的请求后，首先做如下检查：
 
-- 解析调用请求；存在无效数据时，比如无效的过程名称，未提供参数，或者参数不符合要求等，返回 400、405 或者 406 状态码。
+- 解析调用请求；存在无效数据时，比如无效的过程 URI，未提供参数，或者参数不符合要求等，返回 400、405 或者 406 状态码。
 - 指定的过程是否存在；若不存在，立即返回 404。
 - 调用者是否拥有执行该过程的权限；若没有权限或者未提供要求的身份验证信息，则分别返回 403、401 状态码。
 
@@ -565,13 +567,13 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.1) 注册过程
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/registerProcedure`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/registerProcedure`
 - 参数：
    + `methodName`：待注册过程的方法名称；由于主机名和应用名是隐含的，所以无需指定。
    + `forHost`：可以调用该方法的主机名称，可指定多个主机（逗号分隔），亦可使用通配符。
    + `forApp`：可以调用该方法的应用名称，可指定多个主机（逗号分隔），亦可使用通配符。
 - 返回值：无。客户端依据结果的 `retCode` 判断是否注册成功：
-   + `409`：表示重复的过程名称/方法名称。
+   + `409`：表示重复的过程 URI/方法名称。
    + `200`：表示成功。
 
 注册过程的数据包：
@@ -607,7 +609,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.2) 撤销过程
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/revokeProcedure`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/revokeProcedure`
 - 参数：
    + `methodName`：待撤销过程的方法名称；由于主机名和应用名是隐含的，所以无需指定。
 - 返回值：无。客户端依据结果的 `retCode` 判断是否撤销成功，可能的值有：
@@ -618,7 +620,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.3) 注册事件
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/registerEvent`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/registerEvent`
 - 参数：
    + `bubbleName`：待注册的事件名称；由于主机名和应用名是隐含的，所以无需指定。
    + `forHost`：可以订阅该事件的主机名称，可指定多个主机（逗号分隔），亦可使用通配符。
@@ -629,7 +631,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.4) 撤销事件
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/revokeEvent`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/revokeEvent`
 - 参数：
    + `bubbleName`：待撤销过程的事件名称；由于主机名和应用名是隐含的，所以无需指定。
 - 返回值：无。客户端依据结果的 `retCode` 判断是否撤销成功，可能的值有：
@@ -639,7 +641,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.5) 订阅事件
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/subscribeEvent`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/subscribeEvent`
 - 参数：
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
@@ -650,7 +652,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.6) 取消事件订阅
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/unsubscribeEvent`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/unsubscribeEvent`
 - 参数：
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
@@ -660,7 +662,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.7) 列出已连接端点
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listEndpoints`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listEndpoints`
 - 参数：无。
 - 返回值：成功时返回已注册的，且调用方可调用的过程清单。
 - 常见错误状态码：403（Forbidden）。
@@ -704,7 +706,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.8) 列出已注册过程
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listProcedures`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listProcedures`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
 - 返回值：成功时返回已注册的，且调用方可调用的过程清单。
 - 常见错误状态码：
@@ -740,7 +742,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.9) 列出已注册事件
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listEvents`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listEvents`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
 - 返回值：成功时返回已注册的，且调用方可订阅的事件清单。
 - 常见错误状态码：
@@ -776,7 +778,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.10) 列出事件的订阅者
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/listEventSubscribers`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listEventSubscribers`
 - 参数：
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
@@ -812,7 +814,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 该过程主要用于测试。
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/echo`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/echo`
 - 参数：
    + `words`：一个非空字符串。
 - 返回值：成功时返回传入的非空字符串。
@@ -842,14 +844,16 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 
 #### 2.4.1) 新行者事件
 
-当一个新的行者成功连入 hbdbus 服务器时，产生 `NEWENDPOINT` 事件：
+- 事件 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/bubble/NewEndpoint`
+
+当一个新的行者成功连入 hbdbus 服务器时，产生 `NewEndpoint` 事件：
 
 ```json
 {
     "packetType": "event",
     "eventId": "<unique_event_identifier>",
     "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
-    "fromBubble": "NEWENDPOINT",
+    "fromBubble": "NewEndpoint",
     "bubbleData": {
         "endpointType": [ "web" | "unix" ],
         "endpointName": "<the_endpoint_name>",
@@ -871,14 +875,16 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 
 #### 2.4.2) 行者断开事件
 
-当一个行者因为丢失连接或者长时间无响应而移除时，产生 `BROKENENDPOINT` 事件：
+- 事件 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/bubble/BrokenEndpoint`
+
+当一个行者因为丢失连接或者长时间无响应而移除时，产生 `BrokenEndpoint` 事件：
 
 ```json
 {
     "packetType": "event",
     "eventId": "<unique_event_identifier>",
     "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
-    "fromBubble": "BROKENENDPOINT",
+    "fromBubble": "BrokenEndpoint",
     "bubbleData": {
         "endpointType": [ "web" | "unix" ],
         "endpointName": "<the_endpoint_name>",
@@ -900,14 +906,16 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 
 #### 2.4.3) 丢失事件发生器事件
 
-当某个行者订阅了某个事件，但产生该事件的行者意外断开时，将向订阅者发送 `LOSTEVENTGENERATOR` 事件：
+- 事件 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/bubble/LostEventGenerator`
+
+当某个行者订阅了某个事件，但产生该事件的行者意外断开时，将向订阅者发送 `LostEventGenerator` 事件：
 
 ```json
 {
     "packetType": "event",
     "eventId": "<unique_event_identifier>",
     "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
-    "fromBubble": "LOSTEVENTGENERATOR",
+    "fromBubble": "LostEventGenerator",
     "bubbleData": {
         "endpointName": "<the_endpoint_name>",
     }
@@ -921,14 +929,14 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 
 #### 2.4.4) 撤销泡泡事件
 
-当某个行者订阅了某个事件，但事件发生器撤销该事件时，将向订阅者发送 `LOSTEVNTBUBBLE` 事件：
+当某个行者订阅了某个事件，但事件发生器撤销该事件时，将向订阅者发送 `LostEventBubble` 事件：
 
 ```json
 {
     "packetType": "event",
     "eventId": "<unique_event_identifier>",
     "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
-    "fromBubble": "LOSTEVNTBUBBLE",
+    "fromBubble": "LostEventBubble",
     "bubbleData": {
         "endpointName": "<the_endpoint_name>",
         "bubbleName": "<the_bubble_name>",
@@ -1257,6 +1265,17 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
 
 1. HBDBus 服务器使用 WebSocket 在非回环地址上监听连接请求，另一个主机上的应用通过 WebSocket 直接连接到该服务器。问题：如何对另一台主机上的应用进行身份验证？
 1. 在不同的 HBDBus 服务器实例之间建立中继服务，所有针对另一个主机上的请求，由 HBDBus 服务器之间通过中继完成，从而实现跨主机的远程过程调用或者事件订阅。此种设计下，身份验证只在 HBDBus 服务器之间进行，各主机上的应用身份验证，由本机处理。这样的话，本机 WebSocket 的事件和过程调用端口均只在本地回环地址上提供服务。比如，当过程调用的目标主机非本机时，HBDBus 服务器可将该请求转发给目标主机所在的 HBDBus 服务器，然后将结果转发给调用者。
+
+### 附.1) 修订记录
+
+发布历史：
+
+- 2023 年 05 月 31 日：发布 V2.0 RC1，标记为 'v2.0-rc1-230531'。
+
+#### RC1) 230531
+
+1. 调整端点、过程及事件的 URI。
+1. 调整过程及事件名称的命名规则。
 
 ## 附.1) 商标声明
 

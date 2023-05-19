@@ -38,6 +38,7 @@ Language: Chinese
       * [2.1.7) 连接网络热点](#217-连接网络热点)
       * [2.1.8) 中断网络连接](#218-中断网络连接)
       * [2.1.9) 获得当前网络详细信息](#219-获得当前网络详细信息)
+      * [2.1.10) 终止](#2110-终止)
    + [2.2) 可订阅事件](#22-可订阅事件)
       * [2.2.1) 网络设备发生变化](#221-网络设备发生变化)
       * [2.2.2) 热点扫描结束](#222-热点扫描结束)
@@ -46,6 +47,8 @@ Language: Chinese
       * [2.2.5) 断开热点](#225-断开热点)
       * [2.2.6) 当前网络信号强度发生变化](#226-当前网络信号强度发生变化)
 - [3) 错误代码表](#3-错误代码表)
+   + [附.1) 修订记录](#附1-修订记录)
+      * [RC1) 230531](#rc1-230531)
 - [附.1) 商标声明](#附1-商标声明)
 
 [//]:# (END OF TOC)
@@ -55,7 +58,8 @@ Language: Chinese
 - 用途：负责管理系统中的网络接口。
 - 应用名称：`cn.fmsoft.hybridos.inetd`。
 - 行者：
-   + `daemon`: 主行者。
+   + `main`: 主行者。
+   + `config`: 配置行者。主要用于网络接口的后配置，比如根据 DHCP 信息设置网络路由和 DNS 服务器等。
 
 架构图如下：
 
@@ -64,7 +68,7 @@ Language: Chinese
 |        APP1        |        APP2        |       APP3       |
  ------------------------------------------------------------
           |                     |                  |
- == ======================== HBDBus =========================
+ =========================== HBDBus =========================
                                 |
  ------------------------------------------------------------
 |               cn.fmsoft.hybridos.inetd                     |
@@ -77,7 +81,7 @@ Language: Chinese
 
 ## 2) 数据总线接口
 
-`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon` 提供的远程过程及可订阅事件，如下所述。
+`edpt://localhost/cn.fmsoft.hybridos.inetd/main` 提供的远程过程及可订阅事件，如下所述。
 
 ### 2.1) 远程过程
 
@@ -85,7 +89,7 @@ Language: Chinese
 
 #### 2.1.1) 打开网络设备
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/openDevice`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/openDevice`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -108,7 +112,7 @@ Language: Chinese
 
 #### 2.1.2) 关闭网络设备
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/closeDevice`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/closeDevice`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -131,7 +135,7 @@ Language: Chinese
 
 #### 2.1.3) 查询网络设备状态
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/getDeviceStatus`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/getDeviceStatus`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`*`
@@ -190,7 +194,7 @@ Language: Chinese
 
 #### 2.1.4) 开始扫描网络热点
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiStartScanHotspots`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiStartScanHotspots`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -200,6 +204,7 @@ Language: Chinese
 ```json
     {
         "device":"device_name",
+        "interval":5
     }
 ```
 - 返回值：
@@ -239,7 +244,7 @@ Language: Chinese
 
 #### 2.1.5) 停止网络热点扫描
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiStopScanHotspots`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiStopScanHotspots`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -260,11 +265,11 @@ Language: Chinese
     }
 ```
 
-HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止发送 `WIFISCANFINISHED` 事件泡泡。
+HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止发送 `WiFiScanFinished` 事件泡泡。
 
 #### 2.1.6) 获取热点列表
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiGetHotspotList`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiGetHotspotList`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -309,7 +314,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 #### 2.1.7) 连接网络热点
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiConnect`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiConnect`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -343,7 +348,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 #### 2.1.8) 中断网络连接
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiDisconnect`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiDisconnect`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -366,7 +371,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 #### 2.1.9) 获得当前网络详细信息
 
-- 过程名称：`edpt://localhost/cn.fmsoft.hybridos.inetd/daemon/wifiGetNetworkInfo`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiGetNetworkInfo`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`*`
@@ -427,11 +432,38 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 如没有查到当前网络详细信息，则`data`为空，`errCode` 返回错误原因。
 
+#### 2.1.10) 终止
+
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/terminate`
+- 权限：
+   + 允许的主机：`localhost`
+   + 允许的应用：`cn.fmsoft.hybridos.*`
+- 参数：
+   + `afterSeconds`：数值，指定秒数。HBDInetd 将在指定的秒数后终止。零或负值表示立即终止。
+   + "devicesToClose": 要关闭的网络设备，可使用通配符，或者使用空格列出多个设备。
+```json
+    {
+        "afterSeconds": 3,
+        "devicesToClose": "*",
+    }
+```
+- 返回值：
+   + `errCode`：返回错误编码，见附表；
+   + `errMsg`：错误信息。
+```json
+    {
+        "errCode":0,
+        "errMsg":"OK"
+    }
+```
+
+如没有查到当前网络详细信息，则`data`为空，`errCode` 返回错误原因。
+
 ### 2.2) 可订阅事件
 
 #### 2.2.1) 网络设备发生变化
 
-- 泡泡名称：`NETWORKDEVICECHANGED`
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/NetworkDeviceChanged`
 - bubbleData：
    + `device`：网络设备名称；
    + `type`：网络类型；
@@ -448,7 +480,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 #### 2.2.2) 热点扫描结束
 
-- 泡泡名称：`WIFISCANFINISHED`
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiScanFinished`
 - 泡泡数据：
    + `hotspots`：若扫描失败，该键值为 `null`；若扫描成功，则包含该键值用于描述热点数组，每个成员包含如下信息：
       + `bssid`：BSSID值；
@@ -481,7 +513,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 #### 2.2.3) 连接到热点
 
-- 泡泡名称：`WIFICONNECTED`
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiConnected`
 - 泡泡数据：
    + `bssid`：BSSID值；
    + `ssid`：网络SSID；
@@ -499,7 +531,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 #### 2.2.4) 连接已配置
 
-- 泡泡名称：`WIFICONFIGURED`
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiConfigured`
 - 泡泡数据：
    + `bssid`：BSSID值；
    + `ssid`：网络SSID；
@@ -521,7 +553,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 #### 2.2.5) 断开热点
 
-- 泡泡名称：`WIFIDISCONNECTED`
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiDisconnected`
 - 泡泡数据：
    + `bssid`：BSSID值；
    + `ssid`：网络SSID；
@@ -537,7 +569,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 #### 2.2.6) 当前网络信号强度发生变化
 
-- 泡泡名称：`WIFISIGNALSTRENGTHCHANGED`
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiSignalStrengthChanged`
 - bubbleData：
    + `bssid`：BSSID值；
    + `ssid`：网络SSID；
@@ -577,6 +609,16 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 | `ERR_CLOSE_MOBILE_DEVICE`     | -16     | an error ocurs in close mobile device.   | 关闭Mobile设备错误       |
 | `ERR_DEVICE_NOT_CONNECT`      | -17     | device does not connect any network.     | 网络设备未连接           |
 
+
+### 附.1) 修订记录
+
+发布历史：
+
+- 2023 年 05 月 31 日：发布 V2.0 RC1，标记为 'v1.0-rc1-230531'。
+
+#### RC1) 230531
+
+1. 调整泡泡名称：使用首字母大写的驼峰命名法。
 
 ## 附.1) 商标声明
 
