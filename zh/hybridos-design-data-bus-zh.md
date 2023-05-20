@@ -819,7 +819,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 - 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/terminate`
 - 权限：
    + 允许的主机：`localhost`
-   + 允许的应用：`cn.fmsoft.hybridos.hbdbus, cn.fmsoft.hybridos.powerd`
+   + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
    + `afterSeconds`：数值，指定秒数。HBDBus 将在指定的秒数后终止。零或负值表示立即终止。
 - 返回值：成功时返回发送 `SystemShutdown` 事件的行者数量。
