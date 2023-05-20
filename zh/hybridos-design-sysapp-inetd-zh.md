@@ -94,14 +94,14 @@ Language: Chinese
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
-   + `device`：网络设备名称；
+   + `device`：网络设备名称。
 ```json
     {
         "device":"device_name",
     }
 ```
 - 返回值：
-   + `errCode`：返回错误编码，见附表；
+   + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
 ```json
     {
@@ -117,14 +117,14 @@ Language: Chinese
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
-   + `device`：网络设备名称；
+   + `device`：网络设备名称。
 ```json
     {
         "device":"device_name"
     }
 ```
 - 返回值：
-   + `errCode`：返回错误编码，见附表；
+   + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
 ```json
     {
@@ -148,13 +148,13 @@ Language: Chinese
 ```
 - 返回值：
    + `data`：返回的数据：
-     + `device`：网络设备名；
-     + `type`：网络设备类型；
-     + `status`：网络设备状态；
-     + `mac`：网络设备MAC地址；
-     + `inet4`：网络设备IPv4地址信息；
-     + `inet6`：网络设备IPv4地址信息；
-   + `errCode`：返回错误编码，见附表；
+     + `device`：网络设备名。
+     + `type`：网络设备类型。
+     + `status`：网络设备状态。
+     + `mac`：网络设备MAC地址。
+     + `inet4`：网络设备IPv4地址信息。
+     + `inet6`：网络设备IPv4地址信息。
+   + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
 ```json
     {
@@ -199,7 +199,7 @@ Language: Chinese
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
-   + `device`：网络设备名称；
+   + `device`：网络设备名称。
    + `interval`：两次扫描的间隔时间（单位：秒）。
 ```json
     {
@@ -210,12 +210,12 @@ Language: Chinese
 - 返回值：
    + `data`：当前热点信息数组，各成员包含如下键值：
      + `bssid`：
-     + `ssid`：网络名称；
-     + `frequency`：网络频率；
-     + `signalStrength`：网络信号强度；
-     + `capabilities`：可用的加密方式；
+     + `ssid`：网络名称。
+     + `frequency`：网络频率。
+     + `signalStrength`：网络信号强度。
+     + `capabilities`：可用的加密方式。
      + `isConnected`：当前是否连接。
-   + `errCode`：返回错误编码，见附表；
+   + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
 ```json
     {
@@ -249,14 +249,14 @@ Language: Chinese
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
-   + `device`：网络设备名称；
+   + `device`：网络设备名称。
 ```json
     { 
         "device":"device_name",
     }
 ```
 - 返回值：
-   + `errCode`：返回错误编码，见附表；
+   + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
 ```json
     {
@@ -274,7 +274,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
-   + `device`：网络设备名称；
+   + `device`：网络设备名称。
 ```json
     {
         "device":"device_name",
@@ -283,12 +283,12 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 返回值：
    + `data`：返回的数据，当前热点信息数组，各成员包含如下键值：
      + `bssid`：
-     + `ssid`：网络名称；
-     + `frequency`：网络频率；
-     + `signalStrength`：网络信号强度；
-     + `capabilities`：可用的加密方式；
+     + `ssid`：网络名称。
+     + `frequency`：网络频率。
+     + `signalStrength`：网络信号强度。
+     + `capabilities`：可用的加密方式。
      + `isConnected`：当前是否连接。
-   + `errCode`：返回错误编码，见附表；
+   + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
    + 样例：
 
@@ -319,10 +319,10 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
-   + `device`：网络设备名称；
-   + `ssid`：网络名称；
-   + `password`：网络密码；
-   + `autoConnect`：网络中断后是否自动连接；
+   + `device`：网络设备名称。
+   + `ssid`：网络名称。
+   + `password`：网络密码。
+   + `autoConnect`：网络中断后是否自动连接。
    + `default`：是否设置为默认网络，下次开机时自动连接。
 ```json
     {
@@ -334,7 +334,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
     }
 ```
 - 返回值：
-   + `errCode`：返回错误编码，见附表；
+   + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
 ```json
     {
@@ -353,14 +353,14 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
-   + `device`：网络设备名称；
+   + `device`：网络设备名称。
 ```json
     {
         "device":"device_name",
     }
 ```
 - 返回值：
-   + `errCode`：返回错误编码，见附表；
+   + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
 ```json
     {
@@ -376,7 +376,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
    + 允许的主机：`localhost`
    + 允许的应用：`*`
 - 参数：
-   + `device`：网络设备名称；
+   + `device`：网络设备名称。
 ```json
     {
         "device":"device_name",
@@ -384,17 +384,17 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 ```
 - 返回值：
    + `data`：返回的数据：
-     + `device`：网络设备名称；
-     + `bssid`：BSSID值；
-     + `ssid`：网络名称；
-     + `encryptionType`：加密方式；
-     + `signalStrength`：信号强度；
-     + `hardwareAddr`：硬件地址；
-     + `inet4`：IPv4 地址信息；
-     + `inet6`：IPv6 地址信息；
-     + `frenquency`：网络信号频率；
-     + `bitRate`：网络速度；
-   + `errCode`：返回错误编码，见附表；
+     + `device`：网络设备名称。
+     + `bssid`：BSSID值。
+     + `ssid`：网络名称。
+     + `encryptionType`：加密方式。
+     + `signalStrength`：信号强度。
+     + `hardwareAddr`：硬件地址。
+     + `inet4`：IPv4 地址信息。
+     + `inet6`：IPv6 地址信息。
+     + `frenquency`：网络信号频率。
+     + `bitRate`：网络速度。
+   + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
 ```json
     {
@@ -440,16 +440,20 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
    + `afterSeconds`：数值，指定秒数。HBDInetd 将在指定的秒数后终止。零或负值表示立即终止。
-   + "devicesToClose": 要关闭的网络设备，可使用通配符，或者使用空格列出多个设备。
+- 返回值：
+   + `errCode`：返回错误编码，见附表。
+   + `errMsg`：错误信息。
+
+下面是一个示例调用参数：
+
 ```json
     {
         "afterSeconds": 3,
-        "devicesToClose": "*",
     }
 ```
-- 返回值：
-   + `errCode`：返回错误编码，见附表；
-   + `errMsg`：错误信息。
+
+对应的返回值：
+
 ```json
     {
         "errCode":0,
@@ -465,8 +469,8 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/NetworkDeviceChanged`
 - bubbleData：
-   + `device`：网络设备名称；
-   + `type`：网络类型；
+   + `device`：网络设备名称。
+   + `type`：网络类型。
    + `status`：设备状态。
 ```json
     {
@@ -482,15 +486,15 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiScanFinished`
 - 泡泡数据：
-   + `hotspots`：若扫描失败，该键值为 `null`；若扫描成功，则包含该键值用于描述热点数组，每个成员包含如下信息：
-      + `bssid`：BSSID值；
-      + `ssid`：网络名称；
-      + `capabilities`：加密方式；
+   + `hotspots`：若扫描失败，该键值为 `null`。若扫描成功，则包含该键值用于描述热点数组，每个成员包含如下信息：
+      + `bssid`：BSSID值。
+      + `ssid`：网络名称。
+      + `capabilities`：加密方式。
       + `signalStrength`：信号强度，取值范围在0——100之间。
-   + `errCode`：该键值包含错误码；为 0 表示成功。
+   + `errCode`：该键值包含错误码。为 0 表示成功。
    + `errMsg`：该键值包含错误信息。
 - 使用描述：
-   + 若 WiFi 设备已被打开，HBDInetd 将定时扫描热点，在扫描结束后通过该事件发送给订阅该事件的行者；
+   + 若 WiFi 设备已被打开，HBDInetd 将定时扫描热点，在扫描结束后通过该事件发送给订阅该事件的行者。
    + 如要获得当前的热点列表，则调用过程 `wifiStartScanHotspots`，通过其返回值获得。
 - 样例：
 
@@ -515,8 +519,8 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiConnected`
 - 泡泡数据：
-   + `bssid`：BSSID值；
-   + `ssid`：网络SSID；
+   + `bssid`：BSSID值。
+   + `ssid`：网络SSID。
    + `signalStrength`：网络信号强度，取值范围在0——100之间。
 ```json
     {
@@ -533,8 +537,8 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiConfigured`
 - 泡泡数据：
-   + `bssid`：BSSID值；
-   + `ssid`：网络SSID；
+   + `bssid`：BSSID值。
+   + `ssid`：网络SSID。
    + `signalStrength`：网络信号强度，取值范围在0——100之间。
    + `inet4`：IPv4 地址信息。
    + `inet6`：IPv6 地址信息。
@@ -555,8 +559,8 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiDisconnected`
 - 泡泡数据：
-   + `bssid`：BSSID值；
-   + `ssid`：网络SSID；
+   + `bssid`：BSSID值。
+   + `ssid`：网络SSID。
 ```json
     {
         "bssid":"f0:b4:29:24:18:eb",
@@ -571,8 +575,8 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiSignalStrengthChanged`
 - bubbleData：
-   + `bssid`：BSSID值；
-   + `ssid`：网络SSID；
+   + `bssid`：BSSID值。
+   + `ssid`：网络SSID。
    + `signalStrength`：网络信号强度，取值范围在0——100之间。
 ```json
     {
@@ -582,7 +586,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
     }
 ```
 - 使用描述：
-   + 当网络连接成功后，才开始发送该泡泡；当前网络中断后，不会发送该事件。
+   + 当网络连接成功后，才开始发送该泡泡。当前网络中断后，不会发送该事件。
    + 该事件的发送间隔，由配置文件中的`scan_time`确定。
 
 

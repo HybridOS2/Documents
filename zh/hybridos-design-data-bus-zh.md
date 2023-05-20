@@ -48,12 +48,14 @@ Language: Chinese
       * [2.3.8) 列出已注册过程](#238-列出已注册过程)
       * [2.3.9) 列出已注册事件](#239-列出已注册事件)
       * [2.3.10) 列出事件的订阅者](#2310-列出事件的订阅者)
-      * [2.3.11) 回声](#2311-回声)
+      * [2.3.11) 终止](#2311-终止)
+      * [2.3.12) 回声](#2312-回声)
    + [2.4) HBDBus 内置事件](#24-hbdbus-内置事件)
       * [2.4.1) 新行者事件](#241-新行者事件)
       * [2.4.2) 行者断开事件](#242-行者断开事件)
       * [2.4.3) 丢失事件发生器事件](#243-丢失事件发生器事件)
       * [2.4.4) 撤销泡泡事件](#244-撤销泡泡事件)
+      * [2.4.5) 系统关闭事件](#245-系统关闭事件)
 - [3) 架构及关键模块](#3-架构及关键模块)
    + [3.1) 架构及服务器模块构成](#31-架构及服务器模块构成)
    + [3.2) 命令行](#32-命令行)
@@ -665,7 +667,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 - 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listEndpoints`
 - 参数：无。
 - 返回值：成功时返回已注册的，且调用方可调用的过程清单。
-- 常见错误状态码：403（Forbidden）。
+- 常见状态码：403（Forbidden）。
 - 仅允许 `cn.fmsoft.hybridos.hbdbus` 应用调用。
 
 下面是一个示例结果：
@@ -709,7 +711,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 - 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listProcedures`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
 - 返回值：成功时返回已注册的，且调用方可调用的过程清单。
-- 常见错误状态码：
+- 常见状态码：
    + 404（Not Found）。
 
 下面是一个示例结果：
@@ -745,7 +747,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 - 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listEvents`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
 - 返回值：成功时返回已注册的，且调用方可订阅的事件清单。
-- 常见错误状态码：
+- 常见状态码：
    + 404（Not Found）。
 
 下面是一个示例结果：
@@ -783,7 +785,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
 - 返回值：成功时返回指定事件的订阅者的主机名及应用名清单。
-- 常见错误状态码：
+- 常见状态码：
    + `404`：表示未找到指定的事件。
    + `403`：表示调用方无权查询指定事件的订阅者。
    + `200`：表示成功。
@@ -810,7 +812,46 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 注意：`retValue` 始终为 JSON 格式的字符串。
 
-#### 2.3.11) 回声
+#### 2.3.11) 终止
+
+该过程用于指示 HBDBus 终止运行。在收到此过程调用后，HBDBus 将向所有已连接的行者（除内置行者外）发送 `SystemShutdown` 事件。
+
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/terminate`
+- 权限：
+   + 允许的主机：`localhost`
+   + 允许的应用：`cn.fmsoft.hybridos.hbdbus, cn.fmsoft.hybridos.powerd`
+- 参数：
+   + `afterSeconds`：数值，指定秒数。HBDBus 将在指定的秒数后终止。零或负值表示立即终止。
+- 返回值：成功时返回发送 `SystemShutdown` 事件的行者数量。
+- 常见状态码：
+   + `200`：表示成功。
+
+下面是一个示例请求：
+
+```json
+{
+    "afterSeconds": 20
+}
+```
+
+对应的响应数据包：
+
+```json
+{
+    "packetType": "result",
+    "resultId": "<unique_result_identifier>",
+    "callId": "<unique_call_identifier>",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromMethod": "terminate",
+    "timeConsumed": 0.5432,
+    "timeDiff": 0.1234,
+    "retCode": 200,
+    "retMsg": "Ok",
+    "retValue": "20",
+}
+```
+
+#### 2.3.12) 回声
 
 该过程主要用于测试。
 
@@ -818,7 +859,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 - 参数：
    + `words`：一个非空字符串。
 - 返回值：成功时返回传入的非空字符串。
-- 常见错误状态码：
+- 常见状态码：
    + `200`：表示成功。
 
 下面是一个示例结果：
@@ -947,6 +988,29 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 其中 `bubbleData` 中的各参数说明如下：
 - `endpointName` 是包含主机名、应用名以及行者名的端点名称。
 - `bubbleName` 泡泡名称。
+
+注：不可订阅。
+
+#### 2.4.5) 系统关闭事件
+
+当 HBDBus 收到 `terminate` 过程调用后，将向所有已连接行者发送 `SystemShutdown` 事件：
+
+```json
+{
+    "packetType": "event",
+    "eventId": "<unique_event_identifier>",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromBubble": "SystemShutdown",
+    "bubbleData": {
+        "endpointName": "<the_endpoint_name_calling_terminate>",
+        "shutdownTime": <the_shutdown_time_since_epoch>,
+    }
+}
+```
+
+其中 `bubbleData` 中的各参数说明如下：
+- `endpointName`：字符串，调用 `terminate` 方法的端点名称。
+- `shutdownTime`：数值，系统真正关闭的时间（自 Epoch 以来的秒数）。
 
 注：不可订阅。
 
@@ -1276,6 +1340,7 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
 
 1. 调整端点、过程及事件的 URI。
 1. 调整过程及事件名称的命名规则。
+1. 新增 `terminate` 方法以及 `SystemShutdown` 事件。
 
 ## 附.1) 商标声明
 
