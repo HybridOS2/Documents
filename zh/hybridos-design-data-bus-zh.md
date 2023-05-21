@@ -814,15 +814,15 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.11) 终止
 
-该过程用于指示 HBDBus 终止运行。在收到此过程调用后，HBDBus 将向所有已连接的行者（除内置行者外）发送 `SystemShutdown` 事件。
+该过程用于指示 HBDBus 终止运行。在收到此过程调用后，HBDBus 将向所有已连接的行者（除内置行者外）发送 `SystemShuttingDown` 事件。
 
 - 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/terminate`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
-   + `afterSeconds`：数值，指定秒数。HBDBus 将在指定的秒数后终止。零或负值表示立即终止。
-- 返回值：成功时返回发送 `SystemShutdown` 事件的行者数量。
+   + `afterSeconds`：一个大于零的数值，指定秒数。HBDBus 将在指定的秒数后终止。零表示立即终止。
+- 返回值：成功时返回发送 `SystemShuttingDown` 事件的行者数量。
 - 常见状态码：
    + `200`：表示成功。
 
@@ -881,7 +881,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 ### 2.4) HBDBus 内置事件
 
-HBDBus 服务器通过 `builtin` 行者产生内置事件。
+HBDBus 服务器通过 `builtin` 行者产生内置事件。内置事件的 `eventId` 始终取 `NOTIFICATION`。
 
 #### 2.4.1) 新行者事件
 
@@ -892,7 +892,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 ```json
 {
     "packetType": "event",
-    "eventId": "<unique_event_identifier>",
+    "eventId": "NOTIFICATION",
     "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromBubble": "NewEndpoint",
     "bubbleData": {
@@ -923,7 +923,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 ```json
 {
     "packetType": "event",
-    "eventId": "<unique_event_identifier>",
+    "eventId": "NOTIFICATION",
     "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromBubble": "BrokenEndpoint",
     "bubbleData": {
@@ -954,7 +954,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 ```json
 {
     "packetType": "event",
-    "eventId": "<unique_event_identifier>",
+    "eventId": "NOTIFICATION",
     "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromBubble": "LostEventGenerator",
     "bubbleData": {
@@ -975,7 +975,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 ```json
 {
     "packetType": "event",
-    "eventId": "<unique_event_identifier>",
+    "eventId": "NOTIFICATION",
     "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
     "fromBubble": "LostEventBubble",
     "bubbleData": {
@@ -993,24 +993,24 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。
 
 #### 2.4.5) 系统关闭事件
 
-当 HBDBus 收到 `terminate` 过程调用后，将向所有已连接行者发送 `SystemShutdown` 事件：
+当 HBDBus 收到 `terminate` 过程调用后，将向所有已连接行者发送 `SystemShuttingDown` 事件：
 
 ```json
 {
     "packetType": "event",
-    "eventId": "<unique_event_identifier>",
+    "eventId": "NOTIFICATION",
     "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
-    "fromBubble": "SystemShutdown",
+    "fromBubble": "SystemShuttingDown",
     "bubbleData": {
         "endpointName": "<the_endpoint_name_calling_terminate>",
-        "shutdownTime": <the_shutdown_time_since_epoch>,
+        "shutdownTime": "<the_shutdown_time_since_epoch>",
     }
 }
 ```
 
 其中 `bubbleData` 中的各参数说明如下：
 - `endpointName`：字符串，调用 `terminate` 方法的端点名称。
-- `shutdownTime`：数值，系统真正关闭的时间（自 Epoch 以来的秒数）。
+- `shutdownTime`：字符串，包含系统真正关闭的时间（自 Epoch 以来的秒数）。
 
 注：不可订阅。
 
@@ -1340,7 +1340,7 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
 
 1. 调整端点、过程及事件的 URI。
 1. 调整过程及事件名称的命名规则。
-1. 新增 `terminate` 方法以及 `SystemShutdown` 事件。
+1. 新增 `terminate` 方法以及 `SystemShuttingDown` 事件。
 
 ## 附.1) 商标声明
 

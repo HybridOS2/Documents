@@ -42,9 +42,9 @@ Language: Chinese
    + [2.2) 可订阅事件](#22-可订阅事件)
       * [2.2.1) 网络设备发生变化](#221-网络设备发生变化)
       * [2.2.2) 热点扫描结束](#222-热点扫描结束)
-      * [2.2.3) 连接到热点](#223-连接到热点)
+      * [2.2.3) 热点已连接](#223-热点已连接)
       * [2.2.4) 连接已配置](#224-连接已配置)
-      * [2.2.5) 断开热点](#225-断开热点)
+      * [2.2.5) 热点已断开](#225-热点已断开)
       * [2.2.6) 当前网络信号强度发生变化](#226-当前网络信号强度发生变化)
 - [3) 错误代码表](#3-错误代码表)
    + [附.1) 修订记录](#附1-修订记录)
@@ -200,11 +200,11 @@ Language: Chinese
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
    + `device`：网络设备名称。
-   + `interval`：两次扫描的间隔时间（单位：秒）。
+   + `waitSeconds`：启动扫描后返回结果前的等待时间（单位：秒）；若小于 0.1，则立即返回当前已有的扫描结果。
 ```json
     {
         "device":"device_name",
-        "interval":5
+        "waitSeconds":0.5
     }
 ```
 - 返回值：
@@ -212,8 +212,9 @@ Language: Chinese
      + `bssid`：
      + `ssid`：网络名称。
      + `frequency`：网络频率。
-     + `signalStrength`：网络信号强度。
-     + `capabilities`：可用的加密方式。
+     + `signalLevel`：网络信号级别；取值范围：0 ~ 255。
+     + `capabilities`：热点能力。
+     + `isSaved`：是否是已保存热点。
      + `isConnected`：当前是否连接。
    + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
@@ -223,9 +224,10 @@ Language: Chinese
                     {
                          "bssid": "f0:b4:29:24:18:eb",
                          "ssid": "fmsoft-dev",
-                         "frequency": "2427 MHz",
-                         "signalStrength": 65,
-                         "capabilities": ["WPA-PSK-CCMP+TKIP","WPA2-PSK-CCMP+TKIP","WPS","ESS"],
+                         "frequency": "2.4 GHz",
+                         "signalLevel": 65,
+                         "capabilities": "WPA-PSK-CCMP",
+                         "isSaved":true,
                          "isConnected":true
                     },
                     {
@@ -237,10 +239,8 @@ Language: Chinese
     }
 ```
 
-如没有网络热点，则`data`为空数组。
-
-该过程将返回扫描结果。热点列表根据信号强度从大到小排列。如有当前连接网络，则改网络排在第一个。
-
+- 备注：
+   + 如没有网络热点，则 `data` 为空数组。若要获取完整的热点扫描结果，应订阅 `WiFiScanFinished` 事件。
 
 #### 2.1.5) 停止网络热点扫描
 
@@ -251,7 +251,7 @@ Language: Chinese
 - 参数：
    + `device`：网络设备名称。
 ```json
-    { 
+    {
         "device":"device_name",
     }
 ```
@@ -285,8 +285,9 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
      + `bssid`：
      + `ssid`：网络名称。
      + `frequency`：网络频率。
-     + `signalStrength`：网络信号强度。
-     + `capabilities`：可用的加密方式。
+     + `signalLevel`：网络信号级别；取值范围 0 ~ 255。
+     + `capabilities`：热点能力。
+     + `isSaved`：是否是已保存的热点。
      + `isConnected`：当前是否连接。
    + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
@@ -298,9 +299,10 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
                     {
                          "bssid": "f0:b4:29:24:18:eb",
                          "ssid": "fmsoft-dev",
-                         "frequency": "2427 MHz",
-                         "signalStrength": 65,
-                         "capabilities": ["WPA-PSK-CCMP+TKIP","WPA2-PSK-CCMP+TKIP","WPS","ESS"],
+                         "frequency": "2.4 GHz",
+                         "signalLevel": 65,
+                         "capabilities": "WPA-PSK-CCMP",
+                         "isSaved":true
                          "isConnected":true
                     },
                     {
@@ -320,17 +322,17 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
    + `device`：网络设备名称。
-   + `ssid`：网络名称。
-   + `password`：网络密码。
-   + `autoConnect`：网络中断后是否自动连接。
-   + `default`：是否设置为默认网络，下次开机时自动连接。
+   + `ssid`：热点名称。
+   + `bssid`：热点地址；取 `null` 表示未知，此时需指定 `keyMgmt`，否则表示该热点来自扫描结果，此时可忽略 `keyMgmt` 参数。
+   + `keyMgmt`：安全性；取 `NONE`、`WEP`、`WPA-PSK` 和 `WPA2-PSK` 之一。
+   + `passphrase`：`keyMgmt` 不为 `WPA-NONE` 时，通过此参数指定密语（8 ~ 63 ASCII 字符）。
 ```json
     {
         "device":"device_name",
         "ssid":"fmsoft-dev",
-        "password":"hybridos-hibus",
-        "autoConnect":true,
-        "default":true
+        "bssid":null,
+        "keyMgmt":"WPA-PSK"
+        "password":"xxxxxxxx",
     }
 ```
 - 返回值：
@@ -388,7 +390,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
      + `bssid`：BSSID值。
      + `ssid`：网络名称。
      + `encryptionType`：加密方式。
-     + `signalStrength`：信号强度。
+     + `signalLevel`：信号级别；取值范围 0 ~ 255。
      + `hardwareAddr`：硬件地址。
      + `inet4`：IPv4 地址信息。
      + `inet6`：IPv6 地址信息。
@@ -422,7 +424,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
                         "DNSServers": "...",
                     },
                     "frenquency":"5 GHz",
-                    "signalStrength":65,
+                    "signalLevel":65,
                     "bitRate": 650000000,
                 },
         "errCode":0,
@@ -439,7 +441,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
 - 参数：
-   + `afterSeconds`：数值，指定秒数。HBDInetd 将在指定的秒数后终止。零或负值表示立即终止。
+   + `afterSeconds`：一个大于零的数值，指定秒数。HBDInetd 将在指定的秒数后终止。零表示立即终止。
 - 返回值：
    + `errCode`：返回错误编码，见附表。
    + `errMsg`：错误信息。
@@ -486,16 +488,17 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiScanFinished`
 - 泡泡数据：
+   + `success`：表示扫描成功与否。
    + `hotspots`：若扫描失败，该键值为 `null`。若扫描成功，则包含该键值用于描述热点数组，每个成员包含如下信息：
-      + `bssid`：BSSID值。
-      + `ssid`：网络名称。
-      + `capabilities`：加密方式。
-      + `signalStrength`：信号强度，取值范围在0——100之间。
-   + `errCode`：该键值包含错误码。为 0 表示成功。
-   + `errMsg`：该键值包含错误信息。
+      + `bssid`：BSSID。
+      + `ssid`：热点名称。
+      + `capabilities`：热点能力。
+      + `signalLevel`：信号级别，取值范围在 0 ~ 255 之间。
+      + `isSaved`：是否是已保存的热点。
+      + `isConnected`：当前是否连接。
 - 使用描述：
    + 若 WiFi 设备已被打开，HBDInetd 将定时扫描热点，在扫描结束后通过该事件发送给订阅该事件的行者。
-   + 如要获得当前的热点列表，则调用过程 `wifiStartScanHotspots`，通过其返回值获得。
+   + 如要获得当前的热点列表，则调用过程 `wifiGetHotspotList`，通过其返回值获得。
 - 样例：
 
 ```json
@@ -505,8 +508,10 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
         {
             "bssid": "f0:b4:29:24:18:eb",
             "ssid":"fmsoft-dev",
-            "capabilities": ["WPA-PSK-CCMP+TKIP", "WPA2-PSK-CCMP+TKIP", "WPS", "ESS"],
-            "signalStrength":65
+            "capabilities": "WPA-PSK-CCMP",
+            "signalLevel":65,
+            "isSaved":true,
+            "isConnected":true
         },
         {
             ......
@@ -515,18 +520,18 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 }
 ```
 
-#### 2.2.3) 连接到热点
+#### 2.2.3) 热点已连接
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiConnected`
 - 泡泡数据：
    + `bssid`：BSSID值。
    + `ssid`：网络SSID。
-   + `signalStrength`：网络信号强度，取值范围在0——100之间。
+   + `signalLevel`：网络信号强度，取值范围在 0 ~ 255 之间。
 ```json
     {
         "bssid":"f0:b4:29:24:18:eb",
         "ssid":"fmsoft-dev",
-        "signalStrength":65
+        "signalLevel":65
     }
 ```
 
@@ -539,14 +544,14 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 泡泡数据：
    + `bssid`：BSSID值。
    + `ssid`：网络SSID。
-   + `signalStrength`：网络信号强度，取值范围在0——100之间。
+   + `signalLevel`：网络信号级别，取值范围在 0 ~ 255 之间。
    + `inet4`：IPv4 地址信息。
    + `inet6`：IPv6 地址信息。
 ```json
     {
         "bssid":"f0:b4:29:24:18:eb",
         "ssid":"fmsoft-dev",
-        "signalStrength":65,
+        "signalLevel":65,
         "inet4": { ... },
         "inet6": { ... },
     }
@@ -555,7 +560,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络连接成功且配置成功后发送该泡泡。
 
-#### 2.2.5) 断开热点
+#### 2.2.5) 热点已断开
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiDisconnected`
 - 泡泡数据：
@@ -577,17 +582,16 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - bubbleData：
    + `bssid`：BSSID值。
    + `ssid`：网络SSID。
-   + `signalStrength`：网络信号强度，取值范围在0——100之间。
+   + `signalLevel`：网络信号级别，取值范围在 0 ~ 255 之间。
 ```json
     {
         "bssid":"f0:b4:29:24:18:eb",
         "ssid":"fmsoft-dev",
-        "signalStrength":65
+        "signalLevel":65
     }
 ```
 - 使用描述：
    + 当网络连接成功后，才开始发送该泡泡。当前网络中断后，不会发送该事件。
-   + 该事件的发送间隔，由配置文件中的`scan_time`确定。
 
 
 ## 3) 错误代码表
@@ -623,6 +627,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 #### RC1) 230531
 
 1. 调整泡泡名称：使用首字母大写的驼峰命名法。
+1. 调整过程参数和返回值。
 
 ## 附.1) 商标声明
 
