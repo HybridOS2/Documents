@@ -194,7 +194,7 @@ Language: Chinese
 
 #### 2.1.4) 开始扫描网络热点
 
-- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiStartScanHotspots`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiStartScan`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -244,7 +244,7 @@ Language: Chinese
 
 #### 2.1.5) 停止网络热点扫描
 
-- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiStopScanHotspots`
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiStopScan`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -323,16 +323,16 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 参数：
    + `device`：网络设备名称。
    + `ssid`：热点名称。
-   + `bssid`：热点地址；取 `null` 表示未知，此时需指定 `keyMgmt`，否则表示该热点来自扫描结果，此时可忽略 `keyMgmt` 参数。
-   + `keyMgmt`：安全性；取 `NONE`、`WEP`、`WPA-PSK` 和 `WPA2-PSK` 之一。
-   + `passphrase`：`keyMgmt` 不为 `WPA-NONE` 时，通过此参数指定密语（8 ~ 63 ASCII 字符）。
+   + `bssid`：热点地址；取 `null` 表示未知，此时需指定 `keymgmt`，否则表示该热点来自扫描结果，此时可忽略 `keymgmt` 参数。
+   + `keymgmt`：安全性；取 `NONE`、`WEP`、`WPA-EAP`（暂不支持）、`WPA-PSK` 和 `WPA2-PSK` 之一。
+   + `passphrase`：`keymgmt` 不为 `NONE` 时，通过此参数指定密语（8 ~ 63 ASCII 字符）。
 ```json
     {
         "device":"device_name",
         "ssid":"fmsoft-dev",
         "bssid":null,
-        "keyMgmt":"WPA-PSK"
-        "password":"xxxxxxxx",
+        "keymgmt":"WPA-PSK",
+        "passphrase":"xxxxxxxx"
     }
 ```
 - 返回值：
@@ -617,6 +617,19 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 | `ERR_CLOSE_MOBILE_DEVICE`     | -16     | an error ocurs in close mobile device.   | 关闭Mobile设备错误       |
 | `ERR_DEVICE_NOT_CONNECT`      | -17     | device does not connect any network.     | 网络设备未连接           |
 
+## 4) 示例
+
+```
+# call edpt://localhost/cn.fmsoft.hybridos.inetd/main getDeviceStatus {device: '*'}
+# call edpt://localhost/cn.fmsoft.hybridos.inetd/main openDevice {device:'wlp0s20f3'}
+# call edpt://localhost/cn.fmsoft.hybridos.inetd/main closeDevice {device:'wlp0s20f3'}
+
+# call edpt://localhost/cn.fmsoft.hybridos.inetd/main wifiStartScan { device:'wlp0s20f3' }
+# call edpt://localhost/cn.fmsoft.hybridos.inetd/main wifiStopScan { device:'wlp0s20f3' }
+# call edpt://localhost/cn.fmsoft.hybridos.inetd/main wifiConnect { device:'wlp0s20f3', ssid:'foo', bssid:null, keymgmt:'NONE', passphrase: 'barbarbar'}
+# call edpt://localhost/cn.fmsoft.hybridos.inetd/main wifiDisconnect { device:'wlp0s20f3' }
+# call edpt://localhost/cn.fmsoft.hybridos.inetd/main wifiGetNetworkInfo { device:'wlp0s20f3' }
+```
 
 ### 附.1) 修订记录
 
