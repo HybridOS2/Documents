@@ -43,10 +43,12 @@ Language: Chinese
       * [2.2.1) 网络设备发生变化](#221-网络设备发生变化)
       * [2.2.2) 热点扫描结束](#222-热点扫描结束)
       * [2.2.3) 热点已连接](#223-热点已连接)
-      * [2.2.4) 连接已配置](#224-连接已配置)
-      * [2.2.5) 热点已断开](#225-热点已断开)
-      * [2.2.6) 当前网络信号强度发生变化](#226-当前网络信号强度发生变化)
+      * [2.2.4) 失败的连接尝试](#224-失败的连接尝试)
+      * [2.2.5) 连接已配置](#225-连接已配置)
+      * [2.2.6) 热点已断开](#226-热点已断开)
+      * [2.2.7) 当前网络信号强度发生变化](#227-当前网络信号强度发生变化)
 - [3) 错误代码表](#3-错误代码表)
+- [4) 示例](#4-示例)
    + [附.1) 修订记录](#附1-修订记录)
       * [RC1) 230531](#rc1-230531)
 - [附.1) 商标声明](#附1-商标声明)
@@ -345,8 +347,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
     }
 ```
 
-在当前版本中，没有实现`autoConnect`、`default`对应的功能。
-
+若超时或返回 `ERR_UNCERTAIN_RESULT`，可根据随后的 `WiFiConnected` 或者 `WiFiFailedConnAttempt` 事件确定连接是否成功。
 
 #### 2.1.8) 中断网络连接
 
@@ -538,7 +539,24 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络连接成功后发送该泡泡。
 
-#### 2.2.4) 连接已配置
+#### 2.2.4) 失败的连接尝试
+
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiFailedConnAttempt`
+- 泡泡数据：
+   + `bssid`：BSSID值。
+   + `ssid`：网络SSID。
+```json
+    {
+        "bssid":"f0:b4:29:24:18:eb",
+        "ssid":"fmsoft-dev",
+        "reason":"WRONG-KEY",
+    }
+```
+
+- 使用描述：
+   + 当网络连接尝试失败后发送该泡泡。
+
+#### 2.2.5) 连接已配置
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiConfigured`
 - 泡泡数据：
@@ -560,7 +578,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络连接成功且配置成功后发送该泡泡。
 
-#### 2.2.5) 热点已断开
+#### 2.2.6) 热点已断开
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiDisconnected`
 - 泡泡数据：
@@ -576,9 +594,9 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当连接到指定热点的尝试失败或者热点消失时，产生该泡泡。
 
-#### 2.2.6) 当前网络信号强度发生变化
+#### 2.2.7) 当前网络信号强度发生变化
 
-- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiSignalStrengthChanged`
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiSignalLevelChanged`
 - bubbleData：
    + `bssid`：BSSID值。
    + `ssid`：网络SSID。
@@ -596,26 +614,18 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 ## 3) 错误代码表
 
-| 宏定义                        | errCode | errMsg                                   | 备注                     |
-| ---------------------------   | ------- | ---------------------------------------- | ------------------------ |
-| `ERR_OK`                      | 0       | success                                  | 正常                     |
-| `ERR_LIBRARY_OPERATION`       | -1      | an error ocures in library operation     | 错误发生在工具层         |
-| `ERR_NONE_DEVICE_LIST`        | -2      | can not get devices list.                | 无法获得网络设备列表     |
-| `ERR_WRONG_PROCEDURE`         | -3      | wrong procedure name.                    | 错误的远程调用名称       |
-| `ERR_WRONG_JSON`              | -4      | wrong Json format.                       | 错误的JSON格式           |
-| `ERR_NO_DEVICE_NAME_IN_PARAM` | -5      | can not find device name in param.       | 设备名不在网络设备列表中 |
-| `ERR_NO_DEVICE_IN_SYSTEM`     | -6      | can not find device in system.           | 系统中找不到该设备       |
-| `ERR_DEVICE_TYPE`             | -7      | invalid network device type.             | 错误的网络设备类型       |
-| `ERR_LOAD_LIBRARY`            | -8      | some error in load library.              | 装载动态库失败           |
-| `ERR_NOT_WIFI_DEVICE`         | -9      | device is not WiFi device.               | 该设备并非WiFi设备       |
-| `ERR_DEVICE_NOT_OPENNED`      | -10     | device has not openned.                  | 网络设备还未打开         |
-| `ERR_OPEN_WIFI_DEVICE`        | -11     | an error ocurs in open wifi device.      | 打开WiFi设备错误         |
-| `ERR_CLOSE_WIFI_DEVICE`       | -12     | an error ocurs in close wifi device.     | 关闭WiFi设备错误         |
-| `ERR_OPEN_ETHERNET_DEVICE`    | -13     | an error ocurs in open ethernet device.  | 打开Ethernet设备错误     |
-| `ERR_CLOSE_ETHERNET_DEVICE`   | -14     | an error ocurs in close ethernet device. | 关闭Ethernet设备错误     |
-| `ERR_OPEN_MOBILE_DEVICE`      | -15     | an error ocurs in open mobile device.    | 打开Mobile设备错误       |
-| `ERR_CLOSE_MOBILE_DEVICE`     | -16     | an error ocurs in close mobile device.   | 关闭Mobile设备错误       |
-| `ERR_DEVICE_NOT_CONNECT`      | -17     | device does not connect any network.     | 网络设备未连接           |
+| 宏定义                        | errCode | errMsg                                   | 备注                         |
+| ---------------------------   | ------- | ---------------------------------------- | ---------------------------- |
+| `ERR_OK`                      | 0       | Success                                  | 正常                         |
+| `ERR_DATA_BUS`                | -1      | Error in data bus                        | 错误发生在数据总线           |
+| `ERR_DEVICE_CONTROLLER`       | -2      | Error in device controller.              | 错误发生在设备控制器         |
+| `ERR_TWO_MANY_FAILURES`       | -3      | Too many failures.                       | 太多错误                     |
+| `ERR_UNCERTAIN_RESULT`        | -4      | Uncertain result; see event.             | 不确定的结果；见相应事件     |
+| `ERR_WPA_INVALID_SSID`        | -5      | Invalid SSID.                            | 无效的 SSID（热点名称）      |
+| `ERR_WPA_INVALID_PASSPHRASE`  | -6      | Invalid passphrase.                      | 无效密语                     |
+| `ERR_WPA_INVALID_KEYMGMT`     | -7      | Invalid key management.                  | 无效的密钥管理方法           |
+| `ERR_WPA_WRONG_PASSPHRASE`    | -8      | Wrong passphrase.                        | 错误的密语                   |
+| `ERR_WPA_TIMEOUT`             | -9      | Timeout.                                 | 操作超时                     |
 
 ## 4) 示例
 
