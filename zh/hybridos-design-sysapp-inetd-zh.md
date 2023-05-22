@@ -543,11 +543,10 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiFailedConnAttempt`
 - 泡泡数据：
-   + `bssid`：BSSID值。
    + `ssid`：网络SSID。
+   + `reason`：失败原因。
 ```json
     {
-        "bssid":"f0:b4:29:24:18:eb",
         "ssid":"fmsoft-dev",
         "reason":"WRONG-KEY",
     }
@@ -592,7 +591,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 ```
 
 - 使用描述：
-   + 当连接到指定热点的尝试失败或者热点消失时，产生该泡泡。
+   + 当指定热点的连接断开（如热点消失）时，产生该泡泡。
 
 #### 2.2.7) 当前网络信号强度发生变化
 
