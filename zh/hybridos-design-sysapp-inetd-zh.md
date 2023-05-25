@@ -470,7 +470,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 #### 2.2.1) 网络设备发生变化
 
-- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/NetworkDeviceChanged`
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/DeviceChanged`
 - bubbleData：
    + `device`：网络设备名称。
    + `type`：网络类型。
@@ -484,6 +484,44 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 ```
 - 使用描述：
    + 当网络设备工作状态发生变化时，发送此事件。
+
+#### 2.2.5) 网络设备已配置
+
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/DeviceConfigured`
+- 泡泡数据：
+   + `device`：设备接口名称。
+   + `method`：配置方法。
+   + `inet4`：IPv4 地址信息。
+   + `inet6`：IPv6 地址信息。
+```json
+    {
+        "device":"wlan0",
+        "method":"dhcp",
+        "inet4": { ... },
+        "inet6": { ... },
+    }
+```
+
+- 使用描述：
+   + 当网络设备的配置成功后发送该泡泡。
+
+#### 2.2.5) 网络设备配置失败
+
+- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/DeviceConfigFailed`
+- 泡泡数据：
+   + `device`：设备接口名称。
+   + `method`：配置方法。
+   + `reason`：失败原因。
+```json
+    {
+        "device":"wlan0",
+        "method":"dhcp",
+        "reason":"timeout"
+    }
+```
+
+- 使用描述：
+   + 当网络设备的配置失败时发送该泡泡。
 
 #### 2.2.2) 发现热点
 
@@ -597,28 +635,6 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络连接尝试失败后发送该泡泡。
 
-#### 2.2.5) 连接已配置
-
-- Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiConfigured`
-- 泡泡数据：
-   + `bssid`：BSSID值。
-   + `ssid`：网络SSID。
-   + `signalLevel`：网络信号级别，取值范围在 0 ~ 255 之间。
-   + `inet4`：IPv4 地址信息。
-   + `inet6`：IPv6 地址信息。
-```json
-    {
-        "bssid":"f0:b4:29:24:18:eb",
-        "ssid":"fmsoft-dev",
-        "signalLevel":65,
-        "inet4": { ... },
-        "inet6": { ... },
-    }
-```
-
-- 使用描述：
-   + 当网络连接成功且配置成功后发送该泡泡。
-
 #### 2.2.6) 热点已断开
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiDisconnected`
@@ -667,6 +683,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 | `ERR_WPA_INVALID_KEYMGMT`     | -7      | Invalid key management.                  | 无效的密钥管理方法           |
 | `ERR_WPA_WRONG_PASSPHRASE`    | -8      | Wrong passphrase.                        | 错误的密语                   |
 | `ERR_WPA_TIMEOUT`             | -9      | Timeout.                                 | 操作超时                     |
+| `ERR_UNRESOLVED_ATTEMPT`      | -10     | There already is an unresolved attempt.  | 尚有未决意图                 |
 
 ## 4) 示例
 
@@ -691,6 +708,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 #### RC1) 230531
 
 1. 调整泡泡名称：使用首字母大写的驼峰命名法。
+1. 新增过程及泡泡。
 1. 调整过程参数和返回值。
 
 ## 附.1) 商标声明
