@@ -62,7 +62,7 @@ Language: Chinese
 
 和其他常见智能操作系统类似，在 HybridOS 中：
 
-- 每个应用被安装在独立的目录中，且每个应用对应一个唯一的用户账号。通常使用和应用名称一样的用户账号名称（需要将应用名中的 `.` 字符调整为 `-` 字符）。如 `cn.fmsoft.hybridos.hbdbus` 应用，对应的用户为 `cn-fmsoft-hybridos-hbdbus`。
+- 每个应用被安装在独立的目录中，且每个应用对应一个唯一的用户账号。通常使用和应用名称一样的用户账号名称（需要将应用名中的 `.` 字符调整为 `-` 字符）。如 `cn.fmsoft.hybridos.databus` 应用，对应的用户为 `cn.fmsoft.hybridos.databus`。
 - 每个应用所在目录中包含有一对非对称加密算法使用的私钥。在安装该应用时，对应的公钥应被复制到系统目录（如 `/etc/public-keys/`）中，可用于验证签名。
 
 和其他系统不同的是，在 HybridOS 中，我们引入应用组（app group）的概念：
@@ -85,7 +85,7 @@ Language: Chinese
 在 HybridOS 中，应用统一安装在 `/app` 目录下，以应用名为目录名，下设若干目录，分别存放可执行程序、动态库以及数据等。
 
 ```
-cn.fmsoft.hybridos.hbdbus/
+cn.fmsoft.hybridos.databus/
 ├── shared
 │   ├── assets
 │   └── tmp
@@ -99,8 +99,8 @@ cn.fmsoft.hybridos.hbdbus/
 │   └── libhbdbus-plugin.so
 ├── manifest.json
 ├── private
-│   ├── hmac-cn.fmsoft.hybridos.hbdbus.key
-│   └── private-cn.fmsoft.hybridos.hbdbus.pem
+│   ├── hmac-cn.fmsoft.hybridos.databus.key
+│   └── private-cn.fmsoft.hybridos.databus.pem
 ├── tmp
 └── var
 ```
@@ -116,7 +116,7 @@ cn.fmsoft.hybridos.hbdbus/
 - `tmp/` 目录中保存有该应用的临时文件。
 - `var/` 目录中保存该应用以及该应用所在应用组可访问的数据，如数据库等。
 
-通常，一个应用的名称（也是该应用的全局唯一标识符）具有类似主机域名那样的形式，如 `cn.fmsoft.hybridos.hbdbus`。
+通常，一个应用的名称（也是该应用的全局唯一标识符）具有类似主机域名那样的形式，如 `cn.fmsoft.hybridos.databus`。
 
 ## 3) 应用 Manifest 文件
 
@@ -296,7 +296,7 @@ HybridOS 中存在如下系统应用：
 - `cn.fmsoft.hybridos.hbdshell`：应用外壳应用；其中包含若干普通程序，如 `mginit`、`wallpaper`，以及一个行者 `appagent`。
 - `cn.fmsoft.hybridos.appmanager`：用来安装、卸载和管理应用权限的应用，包含一个精灵行者和若干活动。
 - `cn.fmsoft.hybridos.inetd`：用来管理网络设备的守护进程，包含一个精灵行者或若干活动。
-- `cn.fmsoft.hybridos.hbdbus`：数据总线 HBDBus 应用；其中包含两个行者：`daemon`（合璧数据总线服务器）和 `cmdline`（合璧数据总线命令行）。
+- `cn.fmsoft.hybridos.databus`：数据总线 HBDBus 应用；其中包含两个行者：`daemon`（合璧数据总线服务器）和 `cmdline`（合璧数据总线命令行）。
 
 其他规划中的系统应用：
 
@@ -314,7 +314,7 @@ HybridOS 中存在如下系统应用：
 1. `cn.fmsoft.hybridos` 应用组中各应用定义的初始化行者及精灵行者：
    + `cn.fmsoft.hybridos.inet`：网络设备管理。
    + `cn.fmsoft.hybridos.power`：电源管理。
-   + `cn.fmsoft.hybridos.hbdbus`：数据总线服务器。
+   + `cn.fmsoft.hybridos.databus`：数据总线服务器。
    + `cn.fmsoft.hybridos.http`：HTTP 服务器。
 
 以上应用启动无误后，启动 HBDShell 包含的墙纸进程以及 `appagent` 行者等。
@@ -486,7 +486,7 @@ HBDShell 的 `appagent` 行者在收到上述请求后，若行者对应一个�
 如下面的访问控制列表，用于匹配创建当前方法或者事件的应用，以及 HBDBus 应用本身：
 
 ```
-    $owner, cn.fmsoft.hybridos.hbdbus
+    $owner, cn.fmsoft.hybridos.databus
 ```
 
 如下模式列表，用于匹配所有不以 `cn.fmsoft.hybridos.` 打头的应用：
