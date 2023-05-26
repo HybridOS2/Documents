@@ -179,7 +179,7 @@ HBDBus 的一些思想来自于 OpenWRT 的 uBus，比如通过 JSON 格式传�
 我们保留如下特别的主机名称和应用名称：
 
 - `localhost`：指本机。
-- `cn.fmsoft.hybridos.hbdbus`：保留的应用名称，指 HBDBus 本身，注册或注销事件或过程时，向该应用发送指定的过程调用。该应用也可提供一些一般性的系统操作命令以及事件。
+- `cn.fmsoft.hybridos.databus`：保留的应用名称，指 HBDBus 本身，注册或注销事件或过程时，向该应用发送指定的过程调用。该应用也可提供一些一般性的系统操作命令以及事件。
 
 ## 2) 协议及接口
 
@@ -569,7 +569,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.1) 注册过程
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/registerProcedure`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/registerProcedure`
 - 参数：
    + `methodName`：待注册过程的方法名称；由于主机名和应用名是隐含的，所以无需指定。
    + `forHost`：可以调用该方法的主机名称，可指定多个主机（逗号分隔），亦可使用通配符。
@@ -584,7 +584,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 {
     "packetType": "call",
     "callId": "<unique_call_identifier>",
-    "toEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "toEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "toMethod": "registerProcedure",
     "expectedTime": 30000,
     "authenInfo": null,
@@ -599,7 +599,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromMethod": "registerProcedure",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -611,7 +611,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.2) 撤销过程
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/revokeProcedure`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/revokeProcedure`
 - 参数：
    + `methodName`：待撤销过程的方法名称；由于主机名和应用名是隐含的，所以无需指定。
 - 返回值：无。客户端依据结果的 `retCode` 判断是否撤销成功，可能的值有：
@@ -622,7 +622,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.3) 注册事件
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/registerEvent`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/registerEvent`
 - 参数：
    + `bubbleName`：待注册的事件名称；由于主机名和应用名是隐含的，所以无需指定。
    + `forHost`：可以订阅该事件的主机名称，可指定多个主机（逗号分隔），亦可使用通配符。
@@ -633,7 +633,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.4) 撤销事件
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/revokeEvent`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/revokeEvent`
 - 参数：
    + `bubbleName`：待撤销过程的事件名称；由于主机名和应用名是隐含的，所以无需指定。
 - 返回值：无。客户端依据结果的 `retCode` 判断是否撤销成功，可能的值有：
@@ -643,7 +643,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.5) 订阅事件
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/subscribeEvent`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/subscribeEvent`
 - 参数：
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
@@ -654,7 +654,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.6) 取消事件订阅
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/unsubscribeEvent`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/unsubscribeEvent`
 - 参数：
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
@@ -664,11 +664,11 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.7) 列出已连接端点
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listEndpoints`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/listEndpoints`
 - 参数：无。
 - 返回值：成功时返回已注册的，且调用方可调用的过程清单。
 - 常见状态码：403（Forbidden）。
-- 仅允许 `cn.fmsoft.hybridos.hbdbus` 应用调用。
+- 仅允许 `cn.fmsoft.hybridos.databus` 应用调用。
 
 下面是一个示例结果：
 
@@ -677,7 +677,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromMethod": "listEndpoints",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -685,7 +685,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "retMsg": "Ok",
     "retValue": [
         {
-            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
             "livingSeconds": 50,
             "methods": ["foo", "bar"],
             "bubbles": ["FOO", "BAR"],
@@ -693,7 +693,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
             "peakMemUsed": 4526
         },
         {
-            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/cmdline",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.databus/cmdline",
             "livingSeconds": 20,
             "methods": ["foo", "bar"],
             "bubbles": ["FOO", "BAR"],
@@ -708,7 +708,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.8) 列出已注册过程
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listProcedures`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/listProcedures`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
 - 返回值：成功时返回已注册的，且调用方可调用的过程清单。
 - 常见状态码：
@@ -721,7 +721,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromMethod": "listProcedures",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -729,7 +729,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "retMsg": "Ok",
     "retValue": [
         {
-            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
             "methods": ["foo", "bar"]
         },
         {
@@ -744,7 +744,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.9) 列出已注册事件
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listEvents`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/listEvents`
 - 参数：空字符串或端点名称；空字符串表明所有端点。
 - 返回值：成功时返回已注册的，且调用方可订阅的事件清单。
 - 常见状态码：
@@ -757,7 +757,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromMethod": "listEvents",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -765,7 +765,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "retMsg": "Ok",
     "retValue": [
         {
-            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+            "endpointName": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
             "bubbles": ["FOO", "BAR"]
         },
         {
@@ -780,7 +780,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 #### 2.3.10) 列出事件的订阅者
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/listEventSubscribers`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/listEventSubscribers`
 - 参数：
    + `endpointName`：事件所属的行者名称，含主机名、应用名以及行者名。
    + `bubbleName`：要订阅的泡泡名。
@@ -797,7 +797,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromMethod": "listEventSubscribers",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -816,7 +816,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 该过程用于指示 HBDBus 终止运行。在收到此过程调用后，HBDBus 将向所有已连接的行者（除内置行者外）发送 `SystemShuttingDown` 事件。
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/terminate`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/terminate`
 - 权限：
    + 允许的主机：`localhost`
    + 允许的应用：`cn.fmsoft.hybridos.*`
@@ -841,7 +841,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromMethod": "terminate",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -855,7 +855,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
 
 该过程主要用于测试。
 
-- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/method/echo`
+- 过程 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/method/echo`
 - 参数：
    + `words`：一个非空字符串。
 - 返回值：成功时返回传入的非空字符串。
@@ -869,7 +869,7 @@ HBDBus 服务器通过内置过程实现注册过程/事件等功能。
     "packetType": "result",
     "resultId": "<unique_result_identifier>",
     "callId": "<unique_call_identifier>",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromMethod": "echo",
     "timeConsumed": 0.5432,
     "timeDiff": 0.1234,
@@ -885,7 +885,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。内置事件的 `eve
 
 #### 2.4.1) 新行者事件
 
-- 事件 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/bubble/NewEndpoint`
+- 事件 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/bubble/NewEndpoint`
 
 当一个新的行者成功连入 hbdbus 服务器时，产生 `NewEndpoint` 事件：
 
@@ -893,7 +893,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。内置事件的 `eve
 {
     "packetType": "event",
     "eventId": "NOTIFICATION",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromBubble": "NewEndpoint",
     "bubbleData": {
         "endpointType": [ "web" | "unix" ],
@@ -916,7 +916,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。内置事件的 `eve
 
 #### 2.4.2) 行者断开事件
 
-- 事件 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/bubble/BrokenEndpoint`
+- 事件 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/bubble/BrokenEndpoint`
 
 当一个行者因为丢失连接或者长时间无响应而移除时，产生 `BrokenEndpoint` 事件：
 
@@ -924,7 +924,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。内置事件的 `eve
 {
     "packetType": "event",
     "eventId": "NOTIFICATION",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromBubble": "BrokenEndpoint",
     "bubbleData": {
         "endpointType": [ "web" | "unix" ],
@@ -947,7 +947,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。内置事件的 `eve
 
 #### 2.4.3) 丢失事件发生器事件
 
-- 事件 URI：`edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin/bubble/LostEventGenerator`
+- 事件 URI：`edpt://localhost/cn.fmsoft.hybridos.databus/builtin/bubble/LostEventGenerator`
 
 当某个行者订阅了某个事件，但产生该事件的行者意外断开时，将向订阅者发送 `LostEventGenerator` 事件：
 
@@ -955,7 +955,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。内置事件的 `eve
 {
     "packetType": "event",
     "eventId": "NOTIFICATION",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromBubble": "LostEventGenerator",
     "bubbleData": {
         "endpointName": "<the_endpoint_name>",
@@ -976,7 +976,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。内置事件的 `eve
 {
     "packetType": "event",
     "eventId": "NOTIFICATION",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromBubble": "LostEventBubble",
     "bubbleData": {
         "endpointName": "<the_endpoint_name>",
@@ -999,7 +999,7 @@ HBDBus 服务器通过 `builtin` 行者产生内置事件。内置事件的 `eve
 {
     "packetType": "event",
     "eventId": "NOTIFICATION",
-    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.hbdbus/builtin",
+    "fromEndpoint": "edpt://localhost/cn.fmsoft.hybridos.databus/builtin",
     "fromBubble": "SystemShuttingDown",
     "bubbleData": {
         "endpointName": "<the_endpoint_name_calling_terminate>",
@@ -1070,7 +1070,7 @@ HBDBus 服务器使用 C/C++ 语言开发，由服务器程序、命令行程序
 
 如上图所示，App 通过 WebSocket 或者 UnixSocket 连接到 HBDBus 服务器，每个应用可包含若干行者，可用于过程处理，产生事件，或者处理事件，发起过程调用。
 
-其中，HBDBus 命令行（command line）作为 `cn.fmsoft.hybridos.hbdbus` 应用的外挂行者实现，可用于系统管理员查看或者开发者调试使用。
+其中，HBDBus 命令行（command line）作为 `cn.fmsoft.hybridos.databus` 应用的外挂行者实现，可用于系统管理员查看或者开发者调试使用。
 
 HBDBus 服务器主要包含如下软件模块：
 
@@ -1086,7 +1086,7 @@ HBDBus 服务器主要包含如下软件模块：
 
 ### 3.2) 命令行
 
-HBDBus 的命令行工具，将被编译为独立的程序，该程序以端点名 `edpt://localhost/cn.fmsoft.hybridos.hbdbus/cmdline` 连接到服务器，视为 HBDBus 本身的 `cmdline` 行者，以独立进程方式运行。
+HBDBus 的命令行工具，将被编译为独立的程序，该程序以端点名 `edpt://localhost/cn.fmsoft.hybridos.databus/cmdline` 连接到服务器，视为 HBDBus 本身的 `cmdline` 行者，以独立进程方式运行。
 
 使用该命令行工具时，可通过 HBDBus 内置过程来查询已注册过程、事件、特定事件的订阅者信息，亦可订阅特定事件，或者调用某个特定的过程。
 
@@ -1310,7 +1310,7 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
 如下面的模式列表，用于匹配创建当前方法或者事件的应用，以及 hbdbus 应用本身：
 
 ```
-    $owner, cn.fmsoft.hybridos.hbdbus
+    $owner, cn.fmsoft.hybridos.databus
 ```
 
 如下模式列表，用于匹配所有不以 `cn.fmsoft.hybridos.` 打头的应用：
@@ -1338,6 +1338,7 @@ int hbdbus_wait_and_dispatch_packet (hbdbus_conn* conn, struct timeval *timeout)
 
 #### RC1) 230531
 
+1. 调整应用名为 `cn.fmsoft.hybridos.databus`。
 1. 调整端点、过程及事件的 URI。
 1. 调整过程及事件名称的命名规则。
 1. 新增 `terminate` 方法以及 `SystemShuttingDown` 事件。

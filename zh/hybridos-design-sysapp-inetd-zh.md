@@ -41,12 +41,15 @@ Language: Chinese
       * [2.1.10) 终止](#2110-终止)
    + [2.2) 可订阅事件](#22-可订阅事件)
       * [2.2.1) 网络设备发生变化](#221-网络设备发生变化)
-      * [2.2.2) 热点扫描结束](#222-热点扫描结束)
-      * [2.2.3) 热点已连接](#223-热点已连接)
-      * [2.2.4) 失败的连接尝试](#224-失败的连接尝试)
-      * [2.2.5) 连接已配置](#225-连接已配置)
-      * [2.2.6) 热点已断开](#226-热点已断开)
-      * [2.2.7) 当前网络信号强度发生变化](#227-当前网络信号强度发生变化)
+      * [2.2.2) 网络设备已配置](#222-网络设备已配置)
+      * [2.2.3) 网络设备配置失败](#223-网络设备配置失败)
+      * [2.2.4) 发现热点](#224-发现热点)
+      * [2.2.5) 丢失热点](#225-丢失热点)
+      * [2.2.6) 热点扫描结束](#226-热点扫描结束)
+      * [2.2.7) 热点已连接](#227-热点已连接)
+      * [2.2.8) 失败的连接尝试](#228-失败的连接尝试)
+      * [2.2.9) 热点已断开](#229-热点已断开)
+      * [2.2.10) 无线信号强度发生变化](#2210-无线信号强度发生变化)
 - [3) 错误代码表](#3-错误代码表)
 - [4) 示例](#4-示例)
    + [附.1) 修订记录](#附1-修订记录)
@@ -485,7 +488,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络设备工作状态发生变化时，发送此事件。
 
-#### 2.2.5) 网络设备已配置
+#### 2.2.2) 网络设备已配置
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/DeviceConfigured`
 - 泡泡数据：
@@ -505,7 +508,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络设备的配置成功后发送该泡泡。
 
-#### 2.2.5) 网络设备配置失败
+#### 2.2.3) 网络设备配置失败
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/DeviceConfigFailed`
 - 泡泡数据：
@@ -523,7 +526,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络设备的配置失败时发送该泡泡。
 
-#### 2.2.2) 发现热点
+#### 2.2.4) 发现热点
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiHotspotFound`
 - 泡泡数据：
@@ -549,7 +552,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 }
 ```
 
-#### 2.2.2) 丢失热点
+#### 2.2.5) 丢失热点
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiHotspotLost`
 - 泡泡数据：
@@ -565,7 +568,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 }
 ```
 
-#### 2.2.2) 热点扫描结束
+#### 2.2.6) 热点扫描结束
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiScanFinished`
 - 泡泡数据：
@@ -601,7 +604,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 }
 ```
 
-#### 2.2.3) 热点已连接
+#### 2.2.7) 热点已连接
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiConnected`
 - 泡泡数据：
@@ -619,7 +622,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络连接成功后发送该泡泡。
 
-#### 2.2.4) 失败的连接尝试
+#### 2.2.8) 失败的连接尝试
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiFailedConnAttempt`
 - 泡泡数据：
@@ -635,7 +638,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当网络连接尝试失败后发送该泡泡。
 
-#### 2.2.6) 热点已断开
+#### 2.2.9) 热点已断开
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiDisconnected`
 - 泡泡数据：
@@ -651,7 +654,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 使用描述：
    + 当指定热点的连接断开（如热点消失）时，产生该泡泡。
 
-#### 2.2.7) 当前网络信号强度发生变化
+#### 2.2.10) 无线信号强度发生变化
 
 - Event URI: `edpt://localhost/cn.fmsoft.hybridos.hbdinetd/main/bubble/WiFiSignalLevelChanged`
 - bubbleData：
