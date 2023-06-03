@@ -328,7 +328,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 - 参数：
    + `device`：网络设备名称。
    + `ssid`：无线接入点名称。
-   + `bssid`：无线接入点硬件地址；取 `null` 表示未知，此时需指定 `keymgmt`。
+   + `bssid`：无线接入点硬件地址；取 `null` 表示不限。当具有多个重名的接入点名称时，可使用该参数指定具体的接入点。
    + `keymgmt`：安全性；取 `NONE`、`WEP`、`WPA-EAP`（暂不支持）、`WPA-PSK` 和 `WPA2-PSK` 之一；若指定为 null 且该接入点已被保存，则表示使用已保存信息。
    + `passphrase`：`keymgmt` 不为 `NONE` 时，通过此参数指定密语（8 ~ 63 ASCII 字符）。
 ```json
