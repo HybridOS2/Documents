@@ -30,7 +30,8 @@ HybridOS is based on the Linux kernel, making full use of the Linux kernel ecosy
 
 ## Developer Guides
 
-- [Third-party Software List](ThirdPartySoftwareList.md)
+- [HybridOS Code and Developement Convention](specs/hybridos-code-and-developement-convention-en.md)
+- [HybridOS Third-party Software List](guides/hybridos-third-party-software-list-en.md)
 
 ## API References
 
@@ -40,10 +41,12 @@ HybridOS is based on the Linux kernel, making full use of the Linux kernel ecosy
 __NOTE__:  
 Most design documents are written in Chinese.
 
-- [合璧操作系统应用管理规范](zh/hybridos-spec-app-management-zh.md)
-- [数据总线设计](zh/hybridos-design-data-bus-zh.md)
-- [网络接口管理设计](zh/hybridos-design-sysapp-inetd-zh.md)
-- [应用外壳设计](zh/hybridos-design-sysapp-shell-zh.md)
+- [HybridOS Architecture](designs/hybridos-design-architecture-en.md)
+- [HybridOS App Framework](designs/hybridos-design-app-framework-en.md)
+- [合璧操作系统应用管理规范](designs/hybridos-design-app-management-zh.md)
+- [数据总线设计](designs/hybridos-design-data-bus-zh.md)
+- [网络接口管理设计](designs/hybridos-design-sysapp-inetd-zh.md)
+- [应用外壳设计](designs/hybridos-design-sysapp-shell-zh.md)
 
 ## Software Repositories
 
