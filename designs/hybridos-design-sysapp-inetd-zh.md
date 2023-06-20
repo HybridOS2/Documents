@@ -410,7 +410,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
                     "ssid":"fmsoft-dev",
                     "keyMgmt":"WPA2",
                     "hardwareAddr":"AB:CD:EF:12:34:56",
-                    "configMethod:"dhcp",
+                    "configMethod":"dhcp",
                     "DNSServers": "192.168.1.1,8.8.8.8",
                     "inet4": {
                         "address": "192.168.1.128",
