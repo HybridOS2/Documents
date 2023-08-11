@@ -727,6 +727,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 | `ERR_WPA_WRONG_PASSPHRASE`    | -8      | Wrong passphrase.                        | 错误的密语                   |
 | `ERR_WPA_TIMEOUT`             | -9      | Timeout.                                 | 操作超时                     |
 | `ERR_UNRESOLVED_ATTEMPT`      | -10     | There already is an unresolved attempt.  | 尚有未决意图                 |
+| `ERR_DEVICE_NOT_READY`        | -11     | The device is not ready.                 | 设备尚未就绪                 |
 
 ## 4) 示例
 
