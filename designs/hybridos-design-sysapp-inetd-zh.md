@@ -207,7 +207,7 @@ Language: Chinese
         "data":[
                     {
                         "device":"eth0",
-                        "type":"<wifi|wired|mobile|loop>",
+                        "type":"<wifi|wired|mobile|loopback>",
                         "status":"<down|up|running>",
                         "hardwareAddr":"AB:CD:EF:12:34:56",
                         "inet4": {
