@@ -86,9 +86,9 @@ Language: Chinese
 
 ```
 cn.fmsoft.hybridos.databus/
-├── shared
+├── exported
 │   ├── assets
-│   └── tmp
+│   └── hvml
 ├── bin
 │   └── hbdbuscl
 ├── sbin
@@ -107,7 +107,7 @@ cn.fmsoft.hybridos.databus/
 
 上图给出了 HBDBus 应用的目录结构。其中，
 
-- `shared/` 中保存有该应用公开的资源数据，如图标、字体等。
+- `exported/` 中保存有该应用通过 HTTP 等服务对外导出的资源或数据，如图标、字体，以及可作为 HTTP 脚本执行的 HVML 程序等。通常，`exported/assets` 下的文件是公开所有人可访问的；而 `exported/hvml` 下的文件是受保护的，只能通过 HTTP 服务器程序访问。
 - `bin/` 中保存有该应用的二进制可执行程序。
 - `sbin/` 中保存有该应用的系统级二进制可执行程序。
 - `hvml/` 中保存该应用的 HVML 程序。
