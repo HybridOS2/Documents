@@ -30,15 +30,16 @@ Language: Chinese
 - [2) 数据总线接口](#2-数据总线接口)
    + [2.1) 远程过程](#21-远程过程)
       * [2.1.1) 打开网络设备](#211-打开网络设备)
-      * [2.1.2) 关闭网络设备](#212-关闭网络设备)
-      * [2.1.3) 查询网络设备状态](#213-查询网络设备状态)
-      * [2.1.4) 开始扫描网络热点](#214-开始扫描网络热点)
-      * [2.1.5) 停止网络热点扫描](#215-停止网络热点扫描)
-      * [2.1.6) 获取热点列表](#216-获取热点列表)
-      * [2.1.7) 连接网络热点](#217-连接网络热点)
-      * [2.1.8) 中断网络连接](#218-中断网络连接)
-      * [2.1.9) 获得当前网络详细信息](#219-获得当前网络详细信息)
-      * [2.1.10) 终止](#2110-终止)
+      * [2.1.2) 配置网络设备](#212-配置网络设备)
+      * [2.1.3) 关闭网络设备](#213-关闭网络设备)
+      * [2.1.4) 查询网络设备状态](#214-查询网络设备状态)
+      * [2.1.5) 开始扫描网络热点](#215-开始扫描网络热点)
+      * [2.1.6) 停止网络热点扫描](#216-停止网络热点扫描)
+      * [2.1.7) 获取热点列表](#217-获取热点列表)
+      * [2.1.8) 连接网络热点](#218-连接网络热点)
+      * [2.1.9) 中断网络连接](#219-中断网络连接)
+      * [2.1.10) 获得当前网络详细信息](#2110-获得当前网络详细信息)
+      * [2.1.11) 终止](#2111-终止)
    + [2.2) 可订阅事件](#22-可订阅事件)
       * [2.2.1) 网络设备发生变化](#221-网络设备发生变化)
       * [2.2.2) 网络设备已配置](#222-网络设备已配置)
@@ -54,6 +55,7 @@ Language: Chinese
 - [4) 示例](#4-示例)
    + [附.1) 修订记录](#附1-修订记录)
       * [RC1) 230531](#rc1-230531)
+      * [RC2) 230831](#rc2-230831)
 - [附.1) 商标声明](#附1-商标声明)
 
 [//]:# (END OF TOC)
@@ -115,7 +117,46 @@ Language: Chinese
     }
 ```
 
-#### 2.1.2) 关闭网络设备
+#### 2.1.2) 配置网络设备
+
+- Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/configDevice`
+- 权限：
+   + 允许的主机：`localhost`
+   + 允许的应用：`cn.fmsoft.hybridos.*`
+- 参数：
+   + `device`：网络设备名称。
+   + `method`：配置方法，可取 `dhcp` 或 `static`。
+   + `inet4`：配置方法为 `static` 时的 IPv4 配置信息；配置方法为 `dhcp` 时忽略。
+   + `inet6`：配置方法为 `static` 时的 IPv6 配置信息；配置方法为 `dhcp` 时忽略。
+```json
+    {
+        "device":"device_name",
+        "method":"<dhcp | static>",
+        "inet4": {
+            "address": "192.168.1.128",
+            "netmask": "255.255.255.0",
+            "gateway": "192.168.1.1",
+            "dns": "192.168.1.1",
+        },
+        "inet6": {
+            "address": ":fe80::583a:5e2d:fa3f:14ad",
+            "netmask": "...",
+            "gateway": "...",
+            "dns": "...",
+        },
+    }
+```
+- 返回值：
+   + `errCode`：返回错误编码，见附表。
+   + `errMsg`：错误信息。
+```json
+    {
+        "errCode":0,
+        "errMsg":"OK"
+    }
+```
+
+#### 2.1.3) 关闭网络设备
 
 - Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/closeDevice`
 - 权限：
@@ -138,7 +179,7 @@ Language: Chinese
     }
 ```
 
-#### 2.1.3) 查询网络设备状态
+#### 2.1.4) 查询网络设备状态
 
 - Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/getDeviceStatus`
 - 权限：
@@ -166,7 +207,7 @@ Language: Chinese
         "data":[
                     {
                         "device":"eth0",
-                        "type":"<wifi|wired|mobile|loop>",
+                        "type":"<wifi|wired|mobile|loopback>",
                         "status":"<down|up|running>",
                         "hardwareAddr":"AB:CD:EF:12:34:56",
                         "inet4": {
@@ -197,7 +238,7 @@ Language: Chinese
 
 如没有查到网络设备，则`data`为空数组。
 
-#### 2.1.4) 开始扫描网络热点
+#### 2.1.5) 开始扫描网络热点
 
 - Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiStartScan`
 - 权限：
@@ -247,7 +288,7 @@ Language: Chinese
 - 备注：
    + 如没有网络热点，则 `data` 为空数组。若要获取完整的热点扫描结果，应订阅 `WiFiScanFinished` 事件。
 
-#### 2.1.5) 停止网络热点扫描
+#### 2.1.6) 停止网络热点扫描
 
 - Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiStopScan`
 - 权限：
@@ -272,7 +313,7 @@ Language: Chinese
 
 HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止发送 `WiFiScanFinished` 事件泡泡。
 
-#### 2.1.6) 获取热点列表
+#### 2.1.7) 获取热点列表
 
 - Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiGetHotspotList`
 - 权限：
@@ -319,7 +360,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
     }
 ```
 
-#### 2.1.7) 连接网络热点
+#### 2.1.8) 连接网络热点
 
 - Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiConnect`
 - 权限：
@@ -352,7 +393,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 若超时或返回 `ERR_UNCERTAIN_RESULT`，可根据随后的 `WiFiConnected` 或者 `WiFiFailedConnAttempt` 事件确定连接是否成功。
 
-#### 2.1.8) 中断网络连接
+#### 2.1.9) 中断网络连接
 
 - Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiDisconnect`
 - 权限：
@@ -375,7 +416,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
     }
 ```
 
-#### 2.1.9) 获得当前网络详细信息
+#### 2.1.10) 获得当前网络详细信息
 
 - Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/wifiGetNetworkInfo`
 - 权限：
@@ -437,7 +478,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 如没有查到当前网络详细信息，则`data`为空，`errCode` 返回错误原因。
 
-#### 2.1.10) 终止
+#### 2.1.11) 终止
 
 - Procedure URI：`edpt://localhost/cn.fmsoft.hybridos.inetd/main/method/terminate`
 - 权限：
@@ -505,7 +546,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 ```
 
 - 使用描述：
-   + 当网络设备的配置成功后发送该泡泡。
+   + 当网络设备的配置成功后发送该事件。
 
 #### 2.2.3) 网络设备配置失败
 
@@ -523,7 +564,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 ```
 
 - 使用描述：
-   + 当网络设备的配置失败时发送该泡泡。
+   + 当网络设备的配置失败时发送该事件。
 
 #### 2.2.4) 发现热点
 
@@ -619,7 +660,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 ```
 
 - 使用描述：
-   + 当网络连接成功后发送该泡泡。
+   + 当网络连接成功后发送该事件。
 
 #### 2.2.8) 失败的连接尝试
 
@@ -635,7 +676,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 ```
 
 - 使用描述：
-   + 当网络连接尝试失败后发送该泡泡。
+   + 当网络连接尝试失败后发送该事件。
 
 #### 2.2.9) 热点已断开
 
@@ -651,7 +692,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 ```
 
 - 使用描述：
-   + 当指定热点的连接断开（如热点消失）时，产生该泡泡。
+   + 当指定热点的连接断开（如热点消失）时，产生该事件。
 
 #### 2.2.10) 无线信号强度发生变化
 
@@ -668,7 +709,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
     }
 ```
 - 使用描述：
-   + 当网络连接成功后，才开始发送该泡泡。当前网络中断后，不会发送该事件。
+   + 当网络连接成功后，才开始发送该事件。当前网络中断后，不会发送该事件。
 
 
 ## 3) 错误代码表
@@ -686,6 +727,7 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 | `ERR_WPA_WRONG_PASSPHRASE`    | -8      | Wrong passphrase.                        | 错误的密语                   |
 | `ERR_WPA_TIMEOUT`             | -9      | Timeout.                                 | 操作超时                     |
 | `ERR_UNRESOLVED_ATTEMPT`      | -10     | There already is an unresolved attempt.  | 尚有未决意图                 |
+| `ERR_DEVICE_NOT_READY`        | -11     | The device is not ready.                 | 设备尚未就绪                 |
 
 ## 4) 示例
 
@@ -705,13 +747,18 @@ HBDInetd 将停止后台进行的定时热点扫描操作，这将导致停止�
 
 发布历史：
 
-- 2023 年 05 月 31 日：发布 V2.0 RC1，标记为 'v1.0-rc1-230531'。
+- 2023 年 05 月 31 日：发布 V2.0 RC1，标记为 'v2.0-rc1-230531'。
+- 2023 年 08 月 31 日：发布 V2.0 RC2，标记为 'v2.0-rc2-230831'。
 
 #### RC1) 230531
 
 1. 调整泡泡名称：使用首字母大写的驼峰命名法。
-1. 新增过程及泡泡。
+1. 新增过程及事件。
 1. 调整过程参数和返回值。
+
+#### RC2) 230831
+
+1. 新增 `configDevice` 过程。
 
 ## 附.1) 商标声明
 
