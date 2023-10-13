@@ -1,5 +1,41 @@
 # The Third-party Software List
 
+[TOC]
+
+## mDNSResponder
+
+- Source
+   + <https://github.com/HybridOS2/mDNSResponderHBD>
+- Version
+   + 2200.0.8+
+- Building script:
+
+```bash
+git clone git@github.com:HybridOS2/mDNSResponderHBD.git -b mDNSResponder-2200.0.8-hbd
+cd mDNSResponderHBD/mDNSPosix
+make os=linux
+sudo make install
+```
+
+### mbedtls-2.28
+
+- Ubuntu 22.04 LTS
+   + `libmbedtls-dev` - lightweight crypto and SSL/TLS library
+- Source
+   + <https://github.com//mDNSResponderHBD>
+- Version
+   + 2.28.0+
+- Building script:
+
+```bash
+git clone git@github.com:Mbed-TLS/mbedtls.git -b mbedtls-2.28
+mkdir build
+cd build/
+cmake ..
+make
+sudo make install
+```
+
 ## HBDInetd
 
 ### libnl-3

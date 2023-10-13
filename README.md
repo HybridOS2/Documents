@@ -77,6 +77,8 @@ We call the changed versions of the software as derivatives for HybridOS and mai
 <https://github.com/HybridOS2/HBDInetd>
    + HBDShell: the app management service:
 <https://github.com/HybridOS2/HBDShell>
+   + mDNSResponder: the mDNSResponder service:
+<https://github.com/HybridOS2/mDNSResponderHBD>
 
 ## Current Status
 
